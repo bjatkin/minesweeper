@@ -130,7 +130,7 @@ func (t *n_tile) shake() {
 }
 
 func (t *n_tile) flip() int {
-	if t.flipped {
+	if t.flipped || t.flagged {
 		return 0
 	}
 
@@ -139,10 +139,7 @@ func (t *n_tile) flip() int {
 		n_mineDog.play()
 		return 1
 	}
-
-	if !t.flagged {
-		t.gfx.play()
-	}
+	t.gfx.play()
 	t.flipped = true
 	count := 1
 

@@ -35,10 +35,29 @@ func newLevelScean(data *n_levelData, powerUps [3]*powerUp) *levelScean {
 		powerUps: powerUps,
 	}
 
+	minX, maxX := 999999, 0
+	minY, maxY := 999999, 0
 	tiles := make([]n_tile, 0, len(data.layout))
 	for _, tile := range data.layout {
 		tiles = append(tiles, *n_newTile(ret, tile.index, false, false, false))
+		if tile.index.x < minX {
+			minX = tile.index.x
+		}
+		if tile.index.x > maxX {
+			maxX = tile.index.x
+		}
+		if tile.index.y < minY {
+			minY = tile.index.y
+		}
+		if tile.index.y > maxY {
+			maxY = tile.index.y
+		}
 	}
+	width, height := maxX-minX, maxY-minY
+	x := float64(width)/2*17 + 8
+	y := float64(height)/2*11 + 5
+	ret.boardXY = v2f{120 - x, 70 - y}
+	// get the middle tile to the middle of the screen
 
 	for i := 0; i < len(tiles); i++ {
 		for ii, adj := range data.layout[i].adj {
@@ -207,7 +226,7 @@ func (l *levelScean) load() error {
 			subImage(ss, 32, 328, 16, 16),
 			subImage(ss, 48, 328, 16, 16),
 		},
-		[]uint{5, 5, 5, 5},
+		[]uint{8, 8, 8, 8},
 		true,
 	)
 	n_markerFlag.play()
@@ -437,6 +456,24 @@ func (l *levelScean) unload() error {
 }
 
 func (l *levelScean) update() error {
+	// check for a win first thing so we get the lowest possible time
+	var flagged int
+	var flipped int
+	for _, tile := range *l.board {
+		if tile.flagged && tile.mine {
+			flagged++
+		}
+		if tile.flipped {
+			flipped++
+		}
+	}
+	if flagged == l.settings.mineCount ||
+		flipped == len(*l.board)-l.settings.mineCount {
+		l.win = true
+		l.levelTimer.timer.stop()
+		l.duckCharacterUI.state = duckCool
+	}
+
 	if mbtnr(ebiten.MouseButtonLeft) &&
 		l.mouseAnchor.dist(mCoordsF()) < 5 {
 		minX := 9999999
@@ -456,7 +493,14 @@ func (l *levelScean) update() error {
 			}
 
 			if !selTile.flipped {
+				l.duckCharacterUI.state = duckSurprised
+				l.duckCharacterUI.surprised = 30
 				selTile.flip()
+				if selTile.mine && selTile.flipped {
+					l.loose = true
+					l.duckCharacterUI.state = duckDead
+					l.levelTimer.timer.stop()
+				}
 			} else {
 				var flags int
 				for i := 0; i < 8; i++ {
@@ -465,9 +509,16 @@ func (l *levelScean) update() error {
 					}
 				}
 				if flags == selTile.adjCount {
+					l.duckCharacterUI.state = duckSurprised
+					l.duckCharacterUI.surprised = 30
 					for i := 0; i < 8; i++ {
 						if selTile.adj[i] != nil && !selTile.adj[i].flagged {
 							selTile.adj[i].flip()
+							if selTile.adj[i].mine && selTile.adj[i].flipped {
+								l.loose = true
+								l.duckCharacterUI.state = duckDead
+								l.levelTimer.timer.stop()
+							}
 						}
 					}
 				}
@@ -485,7 +536,7 @@ func (l *levelScean) update() error {
 			}
 		}
 		if selTile != nil {
-			selTile.flagged = true
+			selTile.flag()
 		}
 	}
 
@@ -512,8 +563,13 @@ func (l *levelScean) update() error {
 
 	l.miniMap.update()
 	l.levelTimer.update()
+	l.paused = false
+	if !l.levelTimer.timer.running && !l.win && !l.loose {
+		l.paused = true
+	}
 	l.duckCharacterUI.update()
 	n_mineDog.update()
+	n_markerFlag.update()
 
 	for _, tile := range *l.board {
 		tile.update(0)
@@ -523,8 +579,10 @@ func (l *levelScean) update() error {
 }
 
 func (l *levelScean) draw(screen *ebiten.Image) {
-	for _, tile := range *l.board {
-		tile.draw(screen)
+	if !l.paused || !l.filled {
+		for _, tile := range *l.board {
+			tile.draw(screen)
+		}
 	}
 
 	l.miniMap.draw(screen)
@@ -537,7 +595,7 @@ func (l *levelScean) fillBoard(safe *n_tile) {
 	mines := l.settings.mineCount
 	for mines > 0 {
 		i := rand.Intn(len(*l.board))
-		if safe == &(*l.board)[i] {
+		if safe == &(*l.board)[i] || (*l.board)[i].mine {
 			continue
 		}
 		valid := true
@@ -549,6 +607,7 @@ func (l *levelScean) fillBoard(safe *n_tile) {
 		if !valid {
 			continue
 		}
+
 		(*l.board)[i].mine = true
 		for ii := 0; ii < 8; ii++ {
 			if (*l.board)[i].adj[ii] != nil {

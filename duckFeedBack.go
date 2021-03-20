@@ -12,11 +12,12 @@ const (
 )
 
 type duckFeedBack struct {
-	coord    v2f
-	state    int
-	powOne   *powerUp
-	powTwo   *powerUp
-	powThree *powerUp
+	coord     v2f
+	surprised int
+	state     int
+	powOne    *powerUp
+	powTwo    *powerUp
+	powThree  *powerUp
 }
 
 func newDuckFeedBack(coord v2f, powOne, powTwo, powThree *powerUp) *duckFeedBack {
@@ -39,7 +40,7 @@ func newDuckFeedBack(coord v2f, powOne, powTwo, powThree *powerUp) *duckFeedBack
 }
 
 func (d *duckFeedBack) update() {
-	// TODO: were gonna need to add some stuf here
+	d.surprised--
 }
 
 func (d *duckFeedBack) draw(screen *ebiten.Image) {
@@ -55,7 +56,7 @@ func (d *duckFeedBack) draw(screen *ebiten.Image) {
 	screen.DrawImage(powerUpHud, op)
 
 	// should this be in an update function?
-	if d.state == duckSurprised {
+	if d.state == duckSurprised && d.surprised < 0 {
 		d.state = duckNormal
 	}
 }
