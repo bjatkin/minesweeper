@@ -38,6 +38,10 @@ func newDuckFeedBack(coord v2f, powOne, powTwo, powThree *powerUp) *duckFeedBack
 	}
 }
 
+func (d *duckFeedBack) update() {
+	// TODO: were gonna need to add some stuf here
+}
+
 func (d *duckFeedBack) draw(screen *ebiten.Image) {
 	d.powOne.draw(screen)
 	d.powTwo.draw(screen)

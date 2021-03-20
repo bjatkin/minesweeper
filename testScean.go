@@ -122,20 +122,20 @@ func (t *testScean) load() error {
 	t.duckUI.powThree.available = true
 
 	tiles := newSquareLayout(8, 8)
-	var miniTiles []*n_tile
+	var miniTiles []n_tile
 	for i, tile := range tiles {
-		miniTiles = append(miniTiles, n_newTile(t.baseBoard, tile.index, false, false, false))
+		miniTiles = append(miniTiles, *n_newTile(t.baseBoard, tile.index, false, false, false))
 		if tile.index.x%2 == 0 {
 			miniTiles[i].flipped = true
 		}
 	}
 	for i, tile := range miniTiles {
 		for ii, adj := range tiles[i].adj {
-			tile.adj[ii] = miniTiles[adj]
+			tile.adj[ii] = &miniTiles[adj]
 		}
 	}
 
-	t.miniMap = newMiniMap(t.baseBoard, v2f{0, 124}, miniTiles, 10)
+	t.miniMap = newMiniMap(t.baseBoard, v2f{0, 124}, &miniTiles, 10)
 
 	return nil
 }

@@ -60,17 +60,27 @@ func btn(key ebiten.Key) bool {
 }
 
 var leftMouseButtonCount uint
+var leftMouseButtonReleased bool
 var rightMouseButtonCount uint
+var rightMouseButtonReleased bool
 
 func updateMouse() {
+	leftMouseButtonReleased = false
+	rightMouseButtonReleased = false
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		leftMouseButtonCount++
 	} else {
+		if leftMouseButtonCount > 0 {
+			leftMouseButtonReleased = true
+		}
 		leftMouseButtonCount = 0
 	}
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonRight) {
 		rightMouseButtonCount++
 	} else {
+		if rightMouseButtonCount > 0 {
+			rightMouseButtonReleased = true
+		}
 		rightMouseButtonCount = 0
 	}
 }
@@ -81,6 +91,17 @@ func mbtnp(btn ebiten.MouseButton) bool {
 	}
 	if btn == ebiten.MouseButtonRight {
 		return rightMouseButtonCount == 1
+	}
+	log.Fatalf("Untracked Mouse Button: %v", btn)
+	return false
+}
+
+func mbtnr(btn ebiten.MouseButton) bool {
+	if btn == ebiten.MouseButtonLeft {
+		return leftMouseButtonReleased
+	}
+	if btn == ebiten.MouseButtonRight {
+		return rightMouseButtonReleased
 	}
 	log.Fatalf("Untracked Mouse Button: %v", btn)
 	return false

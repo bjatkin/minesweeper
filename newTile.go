@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"math"
 	"math/rand"
 
@@ -105,11 +106,34 @@ func (t *n_tile) update(flipCount int) {
 	}
 }
 
+func (t *n_tile) hovered() bool {
+	m := mCoordsF()
+	coord := t.parent.boardXY
+	coord.x += t.parent.boardDXY.x
+	coord.y += t.parent.boardDXY.y
+	coord.x += t.index.Float64().x * 17
+	coord.y += t.index.Float64().y * 11
+	if m.x > coord.x && m.x < coord.x+16 &&
+		m.y > coord.y && m.y < coord.y+12 {
+		return true
+	}
+	return false
+}
+
+func (t *n_tile) bounce() {
+	// TODO: finish this
+	log.Fatal("This still needs to be implemented")
+}
+
 func (t *n_tile) shake() {
 	t.shakeCounter = 30
 }
 
 func (t *n_tile) flip() int {
+	if t.flipped {
+		return 0
+	}
+
 	if t.mine {
 		t.flipped = true
 		n_mineDog.play()
@@ -143,6 +167,8 @@ func (t *n_tile) flag() {
 func (t *n_tile) draw(screen *ebiten.Image) {
 	// draw tile gfx
 	coord := t.parent.boardXY
+	coord.x += t.parent.boardDXY.x
+	coord.y += t.parent.boardDXY.y
 	coord.x += t.index.Float64().x * 17
 	coord.y += t.index.Float64().y * 11
 	op := &ebiten.DrawImageOptions{}

@@ -124,6 +124,7 @@ func newSquareLayout(rows, cols int) []*layoutTile {
 		for ii := 0; ii < rows; ii++ {
 			tile := layoutTile{
 				index: v2i{i, ii},
+				adj:   [8]int{-1, -1, -1, -1, -1, -1, -1, -1},
 			}
 			layout = append(layout, &tile)
 		}

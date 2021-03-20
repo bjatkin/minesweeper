@@ -1,11 +1,16 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type levelScean struct {
 	boardXY          v2f
+	boardDXY         v2f
+	mouseAnchor      v2f
+	panning          bool
 	mouseXY          v2i
 	board            *[]n_tile
 	filled           bool
@@ -14,9 +19,38 @@ type levelScean struct {
 	timerAccumulator int64
 	start            int64
 	flagCount        int
-	settings         n_levelData
+	settings         *n_levelData
 	usingPowerUp     bool
-	powerUp          powerUp
+	powerUps         [3]*powerUp
+
+	miniMap          *miniMap
+	duckCharacterUI  *duckFeedBack
+	levelTimer       *boardTimer
+	levelStarCounter *starCounter
+}
+
+func newLevelScean(data *n_levelData, powerUps [3]*powerUp) *levelScean {
+	ret := &levelScean{
+		settings: data,
+		powerUps: powerUps,
+	}
+
+	tiles := make([]n_tile, 0, len(data.layout))
+	for _, tile := range data.layout {
+		tiles = append(tiles, *n_newTile(ret, tile.index, false, false, false))
+	}
+
+	for i := 0; i < len(tiles); i++ {
+		for ii, adj := range data.layout[i].adj {
+			if adj > -1 {
+				tiles[i].adj[ii] = &tiles[adj]
+			}
+		}
+	}
+
+	ret.board = &tiles
+
+	return ret
 }
 
 // Level Assets, all of these should be loaded from the main sprite sheet
@@ -267,6 +301,35 @@ func (l *levelScean) load() error {
 		subImage(ss, 352, 56, 8, 8),
 	}
 
+	addMine = [2]*ebiten.Image{
+		subImage(ss, 0, 0, 16, 16),
+		subImage(ss, 112, 0, 16, 16),
+	}
+	scaredyCat = [2]*ebiten.Image{
+		subImage(ss, 16, 0, 16, 16),
+		subImage(ss, 128, 0, 16, 16),
+	}
+	tidalWave = [2]*ebiten.Image{
+		subImage(ss, 32, 0, 16, 16),
+		subImage(ss, 144, 0, 16, 16),
+	}
+	minusMine = [2]*ebiten.Image{
+		subImage(ss, 48, 0, 16, 16),
+		subImage(ss, 160, 0, 16, 16),
+	}
+	dogWistle = [2]*ebiten.Image{
+		subImage(ss, 64, 0, 16, 16),
+		subImage(ss, 176, 0, 16, 16),
+	}
+	shuffel = [2]*ebiten.Image{
+		subImage(ss, 80, 0, 16, 16),
+		subImage(ss, 192, 0, 16, 16),
+	}
+	dogABone = [2]*ebiten.Image{
+		subImage(ss, 96, 0, 16, 16),
+		subImage(ss, 208, 0, 16, 16),
+	}
+
 	// TODO: add a set of white numbers
 
 	// TODO: the mini map hud needs to be changed to support 3 digit flags and tile counts
@@ -338,6 +401,32 @@ func (l *levelScean) load() error {
 	}
 
 	levelAssetsLoaded = true
+
+	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.settings.mineCount)
+	l.levelTimer = newBoardTimer(v2f{})
+	l.levelStarCounter = &starCounter{
+		coord:         v2f{0, 20},
+		timer:         l.levelTimer.timer,
+		oneStarTime:   l.settings.starTimes[0],
+		twoStarTime:   l.settings.starTimes[1],
+		threeStarTime: l.settings.starTimes[2],
+	}
+
+	l.powerUps = [3]*powerUp{
+		newPowerUp(addMinePow, ebiten.Key1, l.levelTimer.timer),
+		newPowerUp(addMinePow, ebiten.Key2, l.levelTimer.timer),
+		newPowerUp(addMinePow, ebiten.Key3, l.levelTimer.timer),
+	}
+	for i := 0; i < len(l.powerUps); i++ {
+		l.powerUps[i].available = true
+	}
+	l.duckCharacterUI = newDuckFeedBack(
+		v2f{138, 121},
+		l.powerUps[0],
+		l.powerUps[1],
+		l.powerUps[2],
+	)
+
 	return nil
 }
 
@@ -348,8 +437,124 @@ func (l *levelScean) unload() error {
 }
 
 func (l *levelScean) update() error {
+	if mbtnr(ebiten.MouseButtonLeft) &&
+		l.mouseAnchor.dist(mCoordsF()) < 5 {
+		minX := 9999999
+		var selTile *n_tile
+		for i, tile := range *l.board {
+			if tile.hovered() && tile.index.x < minX {
+				minX = tile.index.x
+				selTile = &(*l.board)[i]
+			}
+		}
+
+		if selTile != nil {
+			if !l.filled {
+				l.fillBoard(selTile)
+				l.levelTimer.timer.start()
+				l.filled = true
+			}
+
+			if !selTile.flipped {
+				selTile.flip()
+			} else {
+				var flags int
+				for i := 0; i < 8; i++ {
+					if selTile.adj[i] != nil && selTile.adj[i].flagged {
+						flags++
+					}
+				}
+				if flags == selTile.adjCount {
+					for i := 0; i < 8; i++ {
+						if selTile.adj[i] != nil && !selTile.adj[i].flagged {
+							selTile.adj[i].flip()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if mbtnp(ebiten.MouseButtonRight) {
+		minX := 9999999
+		var selTile *n_tile
+		for i, tile := range *l.board {
+			if tile.hovered() && tile.index.x < minX {
+				minX = tile.index.x
+				selTile = &(*l.board)[i]
+			}
+		}
+		if selTile != nil {
+			selTile.flagged = true
+		}
+	}
+
+	if l.panning {
+		mouse := mCoordsF()
+		l.boardDXY.x = mouse.x - l.mouseAnchor.x
+		l.boardDXY.y = mouse.y - l.mouseAnchor.y
+	}
+	if mbtnp(ebiten.MouseButtonLeft) {
+		l.panning = true
+		l.mouseAnchor = mCoordsF()
+	}
+	if l.panning && !mbtn(ebiten.MouseButtonLeft) {
+		l.panning = false
+		l.boardXY.x += l.boardDXY.x
+		l.boardXY.y += l.boardDXY.y
+		l.boardDXY = v2f{}
+	}
+
+	cursorHold = false
+	if mbtn(ebiten.MouseButtonLeft) {
+		cursorHold = true
+	}
+
+	l.miniMap.update()
+	l.levelTimer.update()
+	l.duckCharacterUI.update()
+	n_mineDog.update()
+
+	for _, tile := range *l.board {
+		tile.update(0)
+	}
+
 	return nil
 }
 
 func (l *levelScean) draw(screen *ebiten.Image) {
+	for _, tile := range *l.board {
+		tile.draw(screen)
+	}
+
+	l.miniMap.draw(screen)
+	l.levelTimer.draw(screen)
+	l.levelStarCounter.draw(screen)
+	l.duckCharacterUI.draw(screen)
+}
+
+func (l *levelScean) fillBoard(safe *n_tile) {
+	mines := l.settings.mineCount
+	for mines > 0 {
+		i := rand.Intn(len(*l.board))
+		if safe == &(*l.board)[i] {
+			continue
+		}
+		valid := true
+		for ii := 0; ii < 8; ii++ {
+			if safe == (*l.board)[i].adj[ii] {
+				valid = false
+			}
+		}
+		if !valid {
+			continue
+		}
+		(*l.board)[i].mine = true
+		for ii := 0; ii < 8; ii++ {
+			if (*l.board)[i].adj[ii] != nil {
+				(*l.board)[i].adj[ii].adjCount++
+			}
+		}
+		mines--
+	}
 }

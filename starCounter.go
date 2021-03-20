@@ -2,9 +2,13 @@ package main
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+// pico-8 white
+var white = color.RGBA{255, 241, 232, 255}
 
 type starCounter struct {
 	coord         v2f
@@ -18,6 +22,9 @@ type starCounter struct {
 func (s *starCounter) draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(s.coord.x, s.coord.y)
+	bg := ebiten.NewImage(39, 11)
+	bg.Fill(white)
+	screen.DrawImage(bg, op)
 
 	var offset float64
 	if s.timer.time() < s.threeStarTime {

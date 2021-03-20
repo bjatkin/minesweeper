@@ -96,7 +96,10 @@ func main() {
 	}
 
 	// TEST
-	currentScean = &levelSelect{}
+	currentScean = newLevelScean(
+		allLevels[0],
+		[3]*powerUp{},
+	)
 	err = currentScean.load()
 	if err != nil {
 		log.Fatal(err)
