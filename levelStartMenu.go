@@ -43,13 +43,13 @@ func newLevelStartMenu() *levelStartMenu {
 		powThree: &uiIcon{coord: v2f{130, 71}, size: v2i{16, 16}, img: minusMine[0]},
 		startBtn: newUIButton(v2f{84, 126}, startBtn),
 		powIcons: [7]*uiIcon{
-			{coord: v2f{0, 17}, size: v2i{16, 16}, img: addMine[0]},
-			{coord: v2f{0, 35}, size: v2i{16, 16}, img: scaredyCat[0]},
-			{coord: v2f{0, 53}, size: v2i{16, 16}, img: tidalWave[0]},
-			{coord: v2f{0, 71}, size: v2i{16, 16}, img: minusMine[0]},
-			{coord: v2f{0, 89}, size: v2i{16, 16}, img: dogWistle[0]},
-			{coord: v2f{0, 107}, size: v2i{16, 16}, img: shuffel[0]},
-			{coord: v2f{0, 125}, size: v2i{16, 16}, img: dogABone[0]},
+			{coord: v2f{0, 17}, size: v2i{16, 16}, img: addMine[0], powType: addMinePow},
+			{coord: v2f{0, 35}, size: v2i{16, 16}, img: scaredyCat[0], powType: scaredyCatPow},
+			{coord: v2f{0, 53}, size: v2i{16, 16}, img: tidalWave[0], powType: tidalWavePow},
+			{coord: v2f{0, 71}, size: v2i{16, 16}, img: minusMine[0], powType: minusMinePow},
+			{coord: v2f{0, 89}, size: v2i{16, 16}, img: dogWistle[0], powType: dogWistlePow},
+			{coord: v2f{0, 107}, size: v2i{16, 16}, img: shuffel[0], powType: shuffelPow},
+			{coord: v2f{0, 125}, size: v2i{16, 16}, img: dogABone[0], powType: dogABonePow},
 		},
 	}
 
@@ -61,6 +61,11 @@ func (l *levelStartMenu) update() {
 	l.powTwo.update()
 	l.powThree.update()
 
+	l.loadTime--
+	if !l.powOneSel && !l.powTwoSel && !l.powThreeSel && l.loadTime <= 0 {
+		l.startBtn.update()
+	}
+
 	for _, i := range l.powIcons {
 		i.update()
 	}
@@ -71,18 +76,22 @@ func (l *levelStartMenu) update() {
 				if i.clicked {
 					if l.powOneSel {
 						l.powOne.img = i.img
+						l.powOne.powType = i.powType
 					}
 					if l.powTwoSel {
 						l.powTwo.img = i.img
+						l.powTwo.powType = i.powType
 					}
 					if l.powThreeSel {
 						l.powThree.img = i.img
+						l.powThree.powType = i.powType
 					}
 				}
 			}
 			l.powOneSel = false
 			l.powTwoSel = false
 			l.powThreeSel = false
+			l.loadTime = 15
 			return
 		}
 	}
@@ -117,11 +126,6 @@ func (l *levelStartMenu) update() {
 		l.powOneSel = false
 		l.powTwoSel = false
 		l.powThreeSel = false
-	}
-
-	l.loadTime--
-	if !l.powOneSel && !l.powTwoSel && !l.powThreeSel && l.loadTime <= 0 {
-		l.startBtn.update()
 	}
 }
 
@@ -206,6 +210,7 @@ type uiIcon struct {
 	coord   v2f
 	size    v2i
 	img     *ebiten.Image
+	powType int
 	hovered bool
 	clicked bool
 }
@@ -228,7 +233,7 @@ func newPowIcon(powType int) *uiIcon {
 	case dogABonePow:
 		img = dogABone[0]
 	}
-	return &uiIcon{img: img}
+	return &uiIcon{img: img, powType: powType}
 }
 
 func (i *uiIcon) update() {

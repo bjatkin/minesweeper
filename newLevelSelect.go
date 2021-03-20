@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -39,12 +40,11 @@ var (
 )
 
 func (l *levelSelect) load() error {
+	cursorHold = false
 	ss, err := getAsset("assets/sprite_sheet.png")
 	if err != nil {
 		return err
 	}
-
-	levelAssetsLoaded = true
 
 	jeep = n_newAniSprite(
 		[]*ebiten.Image{
@@ -374,6 +374,33 @@ func (l *levelSelect) update() error {
 		l.startMenu.update()
 	}
 
+	if l.startMenu.startBtn.clicked {
+		currentScean = newLevelScean(
+			l.startMenu.levelData,
+			[3]int{
+				l.startMenu.powOne.powType,
+				l.startMenu.powTwo.powType,
+				l.startMenu.powThree.powType,
+			},
+		)
+		fmt.Println("power up types set",
+			[3]int{
+				l.startMenu.powOne.powType,
+				l.startMenu.powTwo.powType,
+				l.startMenu.powThree.powType,
+			})
+
+		err := currentScean.load()
+		if err != nil {
+			return err
+		}
+
+		err = l.unload()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -479,7 +506,7 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 	// map ui header star
 	sop := &ebiten.DrawImageOptions{}
 	if l.currLevel.stars > 0 {
-		sop.GeoM.Translate(53, 2)
+		sop.GeoM.Translate(62, 2)
 		screen.DrawImage(redStar, sop)
 	}
 	if l.currLevel.stars > 1 {

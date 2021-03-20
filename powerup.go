@@ -15,6 +15,7 @@ type powerUp struct {
 	icons          [2]*ebiten.Image
 	pType          int
 	available      bool
+	ready          bool
 	boundKey       ebiten.Key
 	timer          *timer
 }
@@ -40,7 +41,7 @@ const (
 )
 
 func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
-	pow := powerUp{pType: powType, boundKey: boundKey, timer: timer}
+	pow := powerUp{pType: powType, boundKey: boundKey, timer: timer, ready: true}
 	nSec := int64(1000000000)
 	switch powType {
 	case addMinePow:
@@ -70,15 +71,15 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 }
 
 func (p *powerUp) wasSelected() bool {
-	if !p.available {
+	if !p.available || !p.ready {
 		return false
 	}
 
 	now := p.timer.time()
-	// now := time.Now().UnixNano()
 	if now < p.countDownTimer {
 		return false
 	}
+	p.ready = true
 
 	if btnp(p.boundKey) {
 		return true
@@ -100,6 +101,7 @@ func (p *powerUp) wasSelected() bool {
 }
 
 func (p *powerUp) activte() {
+	p.ready = false
 	p.countDownTimer = p.timer.time() + p.coolDown
 	// p.countDownTimer = time.Now().UnixNano() + p.coolDown
 	if p.pType == dogABonePow { // this is a single use powerup

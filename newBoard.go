@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -10,18 +11,24 @@ type levelScean struct {
 	boardXY          v2f
 	boardDXY         v2f
 	mouseAnchor      v2f
+	clickCount       int
 	panning          bool
 	mouseXY          v2i
 	board            *[]n_tile
 	filled           bool
 	win, loose       bool
 	paused           bool
+	bestTime         *timer
+	quit             *uiButton
+	restart          *uiButton
 	timerAccumulator int64
 	start            int64
 	flagCount        int
 	settings         *n_levelData
 	usingPowerUp     bool
+	usingPowerUpID   int
 	powerUps         [3]*powerUp
+	powerUpTypes     [3]int
 
 	miniMap          *miniMap
 	duckCharacterUI  *duckFeedBack
@@ -29,10 +36,10 @@ type levelScean struct {
 	levelStarCounter *starCounter
 }
 
-func newLevelScean(data *n_levelData, powerUps [3]*powerUp) *levelScean {
+func newLevelScean(data *n_levelData, powerUpTypes [3]int) *levelScean {
 	ret := &levelScean{
-		settings: data,
-		powerUps: powerUps,
+		settings:     data,
+		powerUpTypes: powerUpTypes,
 	}
 
 	minX, maxX := 999999, 0
@@ -74,16 +81,15 @@ func newLevelScean(data *n_levelData, powerUps [3]*powerUp) *levelScean {
 
 // Level Assets, all of these should be loaded from the main sprite sheet
 var (
-	levelAssetsLoaded bool
-	grassImg          [7]*ebiten.Image
-	yellowGrassImg    [7]*ebiten.Image
-	pinkGrassImg      [7]*ebiten.Image
-	blueGrassImg      [7]*ebiten.Image
-	waterImg          [7]*ebiten.Image
-	iceImg            [3]*ebiten.Image
-	lock              *ebiten.Image
-	n_mineDog         *n_aniSprite
-	n_dogBark         *ebiten.Image
+	grassImg       [7]*ebiten.Image
+	yellowGrassImg [7]*ebiten.Image
+	pinkGrassImg   [7]*ebiten.Image
+	blueGrassImg   [7]*ebiten.Image
+	waterImg       [7]*ebiten.Image
+	iceImg         [3]*ebiten.Image
+	lock           *ebiten.Image
+	n_mineDog      *n_aniSprite
+	n_dogBark      *ebiten.Image
 	// TODO: dead duck needs an update to make his beak a little lighter
 	// cool duck could probably also use a little more dark brown in his hair
 	sideDuck        [4]*ebiten.Image
@@ -111,11 +117,6 @@ var (
 )
 
 func (l *levelScean) load() error {
-	// we only need to run this function once and then these assest are left in memory going forward
-	if levelAssetsLoaded {
-		return nil
-	}
-
 	ss, err := getAsset("assets/sprite_sheet.png")
 	if err != nil {
 		return err
@@ -419,8 +420,6 @@ func (l *levelScean) load() error {
 		subImage(ss, 208, 0, 16, 16),
 	}
 
-	levelAssetsLoaded = true
-
 	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.settings.mineCount)
 	l.levelTimer = newBoardTimer(v2f{})
 	l.levelStarCounter = &starCounter{
@@ -432,10 +431,11 @@ func (l *levelScean) load() error {
 	}
 
 	l.powerUps = [3]*powerUp{
-		newPowerUp(addMinePow, ebiten.Key1, l.levelTimer.timer),
-		newPowerUp(addMinePow, ebiten.Key2, l.levelTimer.timer),
-		newPowerUp(addMinePow, ebiten.Key3, l.levelTimer.timer),
+		newPowerUp(l.powerUpTypes[0], ebiten.Key1, l.levelTimer.timer),
+		newPowerUp(l.powerUpTypes[1], ebiten.Key2, l.levelTimer.timer),
+		newPowerUp(l.powerUpTypes[2], ebiten.Key3, l.levelTimer.timer),
 	}
+	fmt.Println("power up types", l.powerUpTypes)
 	for i := 0; i < len(l.powerUps); i++ {
 		l.powerUps[i].available = true
 	}
@@ -445,6 +445,10 @@ func (l *levelScean) load() error {
 		l.powerUps[1],
 		l.powerUps[2],
 	)
+
+	l.restart = newUIButton(v2f{82, 45}, restartBtn)
+	l.quit = newUIButton(v2f{82, 65}, quitBtn)
+	l.bestTime = &timer{timerAccumulator: l.settings.bestTime, coord: v2f{92, 96}}
 
 	return nil
 }
@@ -474,8 +478,26 @@ func (l *levelScean) update() error {
 		l.duckCharacterUI.state = duckCool
 	}
 
+	// check the power ups
+	if l.powerUps[0].wasSelected() {
+		l.usingPowerUp = true
+		l.usingPowerUpID = 0
+	}
+	if l.powerUps[1].wasSelected() {
+		l.usingPowerUp = true
+		l.usingPowerUpID = 1
+	}
+	if l.powerUps[2].wasSelected() {
+		l.usingPowerUp = true
+		l.usingPowerUpID = 2
+	}
+
+	// check if were flipping a tile
 	if mbtnr(ebiten.MouseButtonLeft) &&
-		l.mouseAnchor.dist(mCoordsF()) < 5 {
+		l.mouseAnchor.dist(mCoordsF()) < 5 &&
+		l.clickCount < 30 &&
+		!l.usingPowerUp &&
+		!l.paused {
 		minX := 9999999
 		var selTile *n_tile
 		for i, tile := range *l.board {
@@ -526,7 +548,25 @@ func (l *levelScean) update() error {
 		}
 	}
 
-	if mbtnp(ebiten.MouseButtonRight) {
+	// finish checking for power up stuff
+	if l.usingPowerUp {
+		switch l.powerUps[l.usingPowerUpID].pType {
+		case addMinePow:
+		case scaredyCatPow:
+		case tidalWavePow:
+			l.powerUps[l.usingPowerUpID].activte()
+			l.usingPowerUp = false
+		case minusMinePow:
+		case dogWistlePow:
+		case shuffelPow:
+		case dogABonePow:
+			// this can only be activated when we loose
+			l.usingPowerUp = false
+		}
+	}
+
+	// flag a tile
+	if mbtnp(ebiten.MouseButtonRight) && !l.paused {
 		minX := 9999999
 		var selTile *n_tile
 		for i, tile := range *l.board {
@@ -540,12 +580,20 @@ func (l *levelScean) update() error {
 		}
 	}
 
+	// pan the board around
+	cursorHold = false
+	if mbtn(ebiten.MouseButtonLeft) {
+		l.clickCount++
+		cursorHold = true
+	}
+
 	if l.panning {
 		mouse := mCoordsF()
 		l.boardDXY.x = mouse.x - l.mouseAnchor.x
 		l.boardDXY.y = mouse.y - l.mouseAnchor.y
 	}
 	if mbtnp(ebiten.MouseButtonLeft) {
+		l.clickCount = 0
 		l.panning = true
 		l.mouseAnchor = mCoordsF()
 	}
@@ -556,15 +604,13 @@ func (l *levelScean) update() error {
 		l.boardDXY = v2f{}
 	}
 
-	cursorHold = false
-	if mbtn(ebiten.MouseButtonLeft) {
-		cursorHold = true
-	}
-
+	// update the mini map and level timer + some other assets
 	l.miniMap.update()
 	l.levelTimer.update()
-	l.paused = false
-	if !l.levelTimer.timer.running && !l.win && !l.loose {
+	if l.levelTimer.play.clicked {
+		l.paused = false
+	}
+	if l.levelTimer.pause.clicked {
 		l.paused = true
 	}
 	l.duckCharacterUI.update()
@@ -575,14 +621,102 @@ func (l *levelScean) update() error {
 		tile.update(0)
 	}
 
+	// the game is paused
+	if l.paused {
+		l.restart.update()
+		l.quit.update()
+		if l.restart.clicked {
+			// restart the board
+			currentScean = newLevelScean(l.settings, l.powerUpTypes)
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
+
+			err = l.unload()
+			if err != nil {
+				return err
+			}
+		}
+		if l.quit.clicked {
+			// quit to the map
+			currentScean = &levelSelect{}
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
+
+			err = l.unload()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if l.win && btnp(ebiten.KeyEnter) {
+		l.settings.beaten = true
+		allLevels[l.settings.nextLevel].unlocked = true
+		// quit to the map
+		currentScean = &levelSelect{}
+		err := currentScean.load()
+		if err != nil {
+			return err
+		}
+
+		err = l.unload()
+		if err != nil {
+			return err
+		}
+	}
+
+	// dog a bone game saver
+	for i := 0; i < 3; i++ {
+		if l.loose && l.powerUps[i].ready && l.powerUps[i].pType == dogABonePow {
+			l.loose = false
+			l.powerUps[i].activte()
+			l.duckCharacterUI.state = duckNormal
+			l.levelTimer.timer.start()
+			fmt.Println("searching...")
+			for i := 0; i < len(*l.board); i++ {
+				if (*l.board)[i].mine && (*l.board)[i].flipped {
+					fmt.Println("found")
+					(*l.board)[i].mine = false
+					(*l.board)[i].flagged = true
+					(*l.board)[i].flipped = false
+					n_mineDog.pause()
+					break
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
 func (l *levelScean) draw(screen *ebiten.Image) {
 	if !l.paused || !l.filled {
-		for _, tile := range *l.board {
+		redraw := []int{}
+
+		for i, tile := range *l.board {
 			tile.draw(screen)
+			if tile.mine && tile.flipped {
+				redraw = append(redraw, i)
+			}
 		}
+
+		for _, tIndex := range redraw {
+			(*l.board)[tIndex].draw(screen)
+		}
+	}
+
+	if l.paused {
+		// draw the pause menu
+		pop := &ebiten.DrawImageOptions{}
+		pop.GeoM.Translate(80, 42)
+		screen.DrawImage(pauseMenu, pop)
+		l.restart.draw(screen)
+		l.quit.draw(screen)
+		l.bestTime.draw(screen)
 	}
 
 	l.miniMap.draw(screen)

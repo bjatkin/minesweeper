@@ -12,10 +12,14 @@ type n_levelData struct {
 	bestTime         int64
 	stars            int8
 	starTimes        [3]int64
-	powerups         [3]powerUp
 	unlocked         bool
 	beaten           bool
+	nextLevel        int
 }
+
+// one second in nano seconds
+var sec = int64(1000000000)
+var min = 60 * sec
 
 // al the levels
 var allLevels = [14]*n_levelData{
@@ -23,18 +27,18 @@ var allLevels = [14]*n_levelData{
 	{
 		layout:    newSquareLayout(8, 8),
 		mineCount: 10,
-		starTimes: [3]int64{50000000, 9000000, 10000000},
-		bestTime:  1018402938475,
+		starTimes: [3]int64{60 * sec, 45 * sec, 35 * sec},
+		bestTime:  65 * sec,
 		unlocked:  true,
+		nextLevel: 1,
 	},
 	// level 2
 	{
-		layout:          newSquareLayout(16, 16),
-		mineCount:       25,
-		starTimes:       [3]int64{},
-		unlocked:        true,
-		lockedTileCount: 10,
-		stars:           3,
+		layout:    newSquareLayout(16, 16),
+		mineCount: 40,
+		starTimes: [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
+		bestTime:  3*min + 45*sec,
+		nextLevel: 1,
 	},
 	// level 3
 	{
