@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -435,10 +436,6 @@ func (l *levelScean) load() error {
 		newPowerUp(l.powerUpTypes[1], ebiten.Key2, l.levelTimer.timer),
 		newPowerUp(l.powerUpTypes[2], ebiten.Key3, l.levelTimer.timer),
 	}
-	fmt.Println("power up types", l.powerUpTypes)
-	for i := 0; i < len(l.powerUps); i++ {
-		l.powerUps[i].available = true
-	}
 	l.duckCharacterUI = newDuckFeedBack(
 		v2f{138, 121},
 		l.powerUps[0],
@@ -493,6 +490,7 @@ func (l *levelScean) update() error {
 	}
 
 	// check if were flipping a tile
+	var flipCount int
 	if mbtnr(ebiten.MouseButtonLeft) &&
 		l.mouseAnchor.dist(mCoordsF()) < 5 &&
 		l.clickCount < 30 &&
@@ -510,6 +508,10 @@ func (l *levelScean) update() error {
 		if selTile != nil {
 			if !l.filled {
 				l.fillBoard(selTile)
+				// make all the power ups available
+				for i := 0; i < len(l.powerUps); i++ {
+					l.powerUps[i].available = true
+				}
 				l.levelTimer.timer.start()
 				l.filled = true
 			}
@@ -517,7 +519,10 @@ func (l *levelScean) update() error {
 			if !selTile.flipped {
 				l.duckCharacterUI.state = duckSurprised
 				l.duckCharacterUI.surprised = 30
-				selTile.flip()
+				flipCount = selTile.flip()
+				if flipCount == 0 {
+					selTile.shake()
+				}
 				if selTile.mine && selTile.flipped {
 					l.loose = true
 					l.duckCharacterUI.state = duckDead
@@ -543,22 +548,54 @@ func (l *levelScean) update() error {
 							}
 						}
 					}
+				} else {
+					for i := 0; i < 8; i++ {
+						if selTile.adj[i] != nil && !selTile.adj[i].flipped {
+							selTile.adj[i].shake()
+						}
+					}
 				}
 			}
 		}
+	}
+
+	for i := 0; i < len(*l.board); i++ {
+		(*l.board)[i].update(flipCount)
 	}
 
 	// finish checking for power up stuff
 	if l.usingPowerUp {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
+			for i := 0; i < len(*l.board); i++ {
+				if (*l.board)[i].flipped && (*l.board)[i].adjCount > 0 {
+					(*l.board)[i].bounce = true
+				}
+			}
 		case scaredyCatPow:
+			for i := 0; i < len(*l.board); i++ {
+				if !(*l.board)[i].flipped {
+					(*l.board)[i].bounce = true
+				}
+			}
 		case tidalWavePow:
 			l.powerUps[l.usingPowerUpID].activte()
 			l.usingPowerUp = false
+			doTidalWave(l.board)
 		case minusMinePow:
+			for i := 0; i < len(*l.board); i++ {
+				if (*l.board)[i].flipped && (*l.board)[i].adjCount > 0 {
+					(*l.board)[i].bounce = true
+				}
+			}
 		case dogWistlePow:
+			l.powerUps[l.usingPowerUpID].activte()
+			l.usingPowerUp = false
+			doDogWistle(l.board)
 		case shuffelPow:
+			l.powerUps[l.usingPowerUpID].activte()
+			l.usingPowerUp = false
+			doBoardShuffel(l.board)
 		case dogABonePow:
 			// this can only be activated when we loose
 			l.usingPowerUp = false
@@ -750,4 +787,41 @@ func (l *levelScean) fillBoard(safe *n_tile) {
 		}
 		mines--
 	}
+}
+
+func doTidalWave(board *[]n_tile) {
+	soak := 4
+	var saftey int
+	for soak > 0 {
+		saftey++
+		if saftey > 100 {
+			// if we've looked this hard for tiles to replace and
+			// still havent found enough then just leave so we don't
+			// get stuck here forever
+			return
+		}
+		i := rand.Intn(len(*board))
+		if (*board)[i].mine ||
+			(*board)[i].flipped ||
+			(*board)[i].flagged {
+			continue
+		}
+		(*board)[i].water = true
+		(*board)[i].gfx = n_newAniSprite(
+			waterImg[:],
+			[]uint{5, 5, 5, 5, 5, 5, 5},
+			false,
+		)
+		soak--
+	}
+}
+
+func doDogWistle(board *[]n_tile) {
+	// TOOD: finish this
+	log.Fatal("do dog wistle is not yet implemented")
+}
+
+func doBoardShuffel(board *[]n_tile) {
+	// TOOD: finish this
+	log.Fatal("do board shuffel is not yet implemented")
 }

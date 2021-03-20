@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"math"
 	"math/rand"
 
@@ -22,6 +21,7 @@ type n_tile struct {
 	iced         bool
 	icedCount    int
 	shakeCounter int
+	bounce       bool
 }
 
 func n_newTile(level *levelScean, index v2i, iced bool, locked bool, water bool) *n_tile {
@@ -120,11 +120,6 @@ func (t *n_tile) hovered() bool {
 	return false
 }
 
-func (t *n_tile) bounce() {
-	// TODO: finish this
-	log.Fatal("This still needs to be implemented")
-}
-
 func (t *n_tile) shake() {
 	t.shakeCounter = 30
 }
@@ -172,6 +167,9 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(coord.x), float64(coord.y))
 	if t.shakeCounter > 0 {
 		op.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+	}
+	if t.bounce {
+		op.GeoM.Translate(0, -math.Abs(math.Sin(float64(tickCounter)/10)*3))
 	}
 	t.gfx.draw(screen, op)
 

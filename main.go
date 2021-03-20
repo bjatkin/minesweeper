@@ -95,6 +95,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TEST
+	// currentScean = &testScean{}
+	// err = currentScean.load()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 	ebiten.SetWindowSize(screenWidth*4, screenHeight*4)
 	ebiten.SetWindowTitle("MineSweeper")
 	if err := ebiten.RunGame(&Game{}); err != nil {

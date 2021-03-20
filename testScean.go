@@ -32,7 +32,7 @@ type testScean struct {
 func (t *testScean) load() error {
 
 	// a quick hack to get the level assets loaded
-	t.baseBoard = &levelScean{}
+	t.baseBoard = newLevelScean(allLevels[0], [3]int{})
 	t.baseBoard.boardXY.x = 5
 	err := t.baseBoard.load()
 	if err != nil {
@@ -131,7 +131,9 @@ func (t *testScean) load() error {
 	}
 	for i, tile := range miniTiles {
 		for ii, adj := range tiles[i].adj {
-			tile.adj[ii] = &miniTiles[adj]
+			if adj > -1 {
+				tile.adj[ii] = &miniTiles[adj]
+			}
 		}
 	}
 
@@ -235,6 +237,10 @@ func (t *testScean) update() error {
 	t.uiTimer.update()
 
 	t.miniMap.update()
+
+	if btnp(ebiten.KeyW) {
+		t.tile.bounce = !t.tile.bounce
+	}
 
 	return nil
 }
