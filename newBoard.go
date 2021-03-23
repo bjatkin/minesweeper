@@ -113,6 +113,7 @@ var (
 	timerBG         *ebiten.Image
 	timerPlayBtn    [3]*ebiten.Image
 	timerPauseBtn   [3]*ebiten.Image
+	timeToken       *ebiten.Image
 )
 
 func (l *levelScean) load() error {
@@ -348,6 +349,7 @@ func (l *levelScean) load() error {
 		subImage(ss, 96, 0, 16, 16),
 		subImage(ss, 208, 0, 16, 16),
 	}
+	timeToken = subImage(ss, 0, 352, 16, 16)
 
 	// TODO: add a set of white numbers
 
@@ -506,6 +508,8 @@ func (l *levelScean) update() error {
 		}
 
 		if selTile != nil {
+
+			// Initalize the board on the first flip
 			if !l.filled {
 				l.fillBoard(selTile)
 				// make all the power ups available
@@ -514,8 +518,11 @@ func (l *levelScean) update() error {
 				}
 				l.levelTimer.timer.start()
 				l.filled = true
+
+				lockTiles(l.board, 10)
 			}
 
+			// this is a virgin tile we are looking to flip
 			if !selTile.flipped {
 				l.duckCharacterUI.state = duckSurprised
 				l.duckCharacterUI.surprised = 30
@@ -528,7 +535,7 @@ func (l *levelScean) update() error {
 					l.duckCharacterUI.state = duckDead
 					l.levelTimer.timer.stop()
 				}
-			} else {
+			} else { // here we are trying to flip adjcent tiles
 				var flags int
 				for i := 0; i < 8; i++ {
 					if selTile.adj[i] != nil && selTile.adj[i].flagged {
@@ -540,7 +547,7 @@ func (l *levelScean) update() error {
 					l.duckCharacterUI.surprised = 30
 					for i := 0; i < 8; i++ {
 						if selTile.adj[i] != nil && !selTile.adj[i].flagged {
-							selTile.adj[i].flip()
+							flipCount += selTile.adj[i].flip()
 							if selTile.adj[i].mine && selTile.adj[i].flipped {
 								l.loose = true
 								l.duckCharacterUI.state = duckDead
@@ -1009,4 +1016,42 @@ func doAddMinePow(board *[]n_tile) bool {
 		}
 	}
 	return false
+}
+
+func lockTiles(board *[]n_tile, tileCount int) {
+	count := tileCount
+	for count > 0 {
+		tile := &(*board)[rand.Intn(len(*board))]
+		if tile.lockedCount == 0 && tile.adjCount > 0 {
+			tile.lockedCount = 10
+			count--
+		}
+	}
+}
+
+func freezeTiles(board *[]n_tile, tileCount int) {
+	count := tileCount
+	for count > 0 {
+		mine := &(*board)[rand.Intn(len(*board))]
+		if !mine.iced {
+			mine.iced = true
+			mine.gfx = n_newAniSprite(
+				iceImg[:],
+				[]uint{6, 6, 6},
+				false,
+			)
+			count--
+		}
+	}
+}
+
+func addTimeTiles(board *[]n_tile, tileCount int) {
+	count := tileCount
+	for count > 0 {
+		mine := &(*board)[rand.Intn(len(*board))]
+		if !mine.timeTile {
+			mine.timeTile = true
+			count--
+		}
+	}
 }

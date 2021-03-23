@@ -8,21 +8,24 @@ import (
 )
 
 type n_tile struct {
-	index        v2i
-	adj          [8]*n_tile
-	adjCount     int
-	parent       *levelScean
-	gfx          *n_aniSprite
-	mine         bool
-	water        bool
-	flagged      bool
-	flipped      bool
-	lockedCount  int
-	iced         bool
-	icedCount    int
-	shakeCounter int
-	barkCounter  int
-	bounce       bool
+	index          v2i
+	adj            [8]*n_tile
+	adjCount       int
+	parent         *levelScean
+	gfx            *n_aniSprite
+	mine           bool
+	water          bool
+	flagged        bool
+	flaggedCount   int
+	flipped        bool
+	lockedCount    int
+	iced           bool
+	icedCount      int
+	timeTile       bool
+	timeTileHeight float64
+	shakeCounter   int
+	barkCounter    int
+	bounce         bool
 }
 
 func n_newTile(level *levelScean, index v2i, iced bool, locked bool, water bool) *n_tile {
@@ -73,13 +76,22 @@ func (t *n_tile) update(flipCount int) {
 	t.gfx.update()
 	t.shakeCounter--
 	t.barkCounter--
+	t.flaggedCount--
+
+	if t.parent.settings.fadeFlags && t.flaggedCount <= 0 {
+		t.flagged = false
+	}
+
+	if t.flipped {
+		t.timeTileHeight += 3
+	}
 
 	if t.flipped && flipCount > 0 && t.lockedCount > 0 {
 		t.lockedCount -= flipCount
 		t.shakeCounter = 10
 	}
 
-	if t.iced {
+	if t.iced && t.parent.filled {
 		var count int
 		for _, adj := range t.adj {
 			if adj == nil || adj.flipped || (adj.mine && adj.flagged) {
@@ -101,8 +113,13 @@ func (t *n_tile) update(flipCount int) {
 					[]uint{10, 5, 5, 5, 5, 5, 5},
 					false,
 				)
-				t.flip()
 				t.iced = false
+				for _, adj := range t.adj {
+					if adj != nil && adj.adjCount == 0 && adj.flipped {
+						t.flip()
+						break
+					}
+				}
 			}
 		}
 	}
@@ -127,7 +144,7 @@ func (t *n_tile) shake() {
 }
 
 func (t *n_tile) flip() int {
-	if t.flipped || t.flagged {
+	if t.iced || t.flipped || t.flagged {
 		return 0
 	}
 
@@ -155,6 +172,7 @@ func (t *n_tile) flip() int {
 func (t *n_tile) flag() {
 	if !t.flipped {
 		t.flagged = !t.flagged
+		t.flaggedCount = 240
 	}
 }
 
@@ -182,10 +200,35 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 		return
 	}
 
+	// draw the marker flag
 	if t.flagged {
-		op.GeoM.Translate(-1, -9)
-		n_markerFlag.draw(screen, op)
-		op.GeoM.Translate(1, 9)
+		if t.parent.settings.fadeFlags {
+			if t.flaggedCount > 60 {
+				op.GeoM.Translate(-1, -9)
+				n_markerFlag.draw(screen, op)
+				op.GeoM.Translate(1, 9)
+			}
+			if t.flaggedCount > 0 &&
+				t.flaggedCount <= 60 &&
+				t.flaggedCount%2 == 0 {
+				op.GeoM.Translate(-1, -9)
+				n_markerFlag.draw(screen, op)
+				op.GeoM.Translate(1, 9)
+
+			}
+		} else {
+			op.GeoM.Translate(-1, -9)
+			n_markerFlag.draw(screen, op)
+			op.GeoM.Translate(1, 9)
+
+		}
+	}
+
+	// draw the +time pow
+	if t.timeTile && t.timeTileHeight < 240 {
+		op.GeoM.Translate(0, -t.timeTileHeight)
+		screen.DrawImage(timeToken, op)
+		op.GeoM.Translate(0, t.timeTileHeight)
 	}
 
 	// draw adj numbers
