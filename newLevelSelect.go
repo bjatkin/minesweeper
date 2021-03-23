@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -383,12 +382,6 @@ func (l *levelSelect) update() error {
 				l.startMenu.powThree.powType,
 			},
 		)
-		fmt.Println("power up types set",
-			[3]int{
-				l.startMenu.powOne.powType,
-				l.startMenu.powTwo.powType,
-				l.startMenu.powThree.powType,
-			})
 
 		err := currentScean.load()
 		if err != nil {

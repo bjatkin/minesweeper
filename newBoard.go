@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -476,17 +474,19 @@ func (l *levelScean) update() error {
 	}
 
 	// check the power ups
-	if l.powerUps[0].wasSelected() {
-		l.usingPowerUp = true
-		l.usingPowerUpID = 0
-	}
-	if l.powerUps[1].wasSelected() {
-		l.usingPowerUp = true
-		l.usingPowerUpID = 1
-	}
-	if l.powerUps[2].wasSelected() {
-		l.usingPowerUp = true
-		l.usingPowerUpID = 2
+	if !l.usingPowerUp {
+		if l.powerUps[0].wasSelected() {
+			l.usingPowerUp = true
+			l.usingPowerUpID = 0
+		}
+		if l.powerUps[1].wasSelected() {
+			l.usingPowerUp = true
+			l.usingPowerUpID = 1
+		}
+		if l.powerUps[2].wasSelected() {
+			l.usingPowerUp = true
+			l.usingPowerUpID = 2
+		}
 	}
 
 	// check if were flipping a tile
@@ -567,26 +567,23 @@ func (l *levelScean) update() error {
 	if l.usingPowerUp {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
-			for i := 0; i < len(*l.board); i++ {
-				if (*l.board)[i].flipped && (*l.board)[i].adjCount > 0 {
-					(*l.board)[i].bounce = true
-				}
+			if doAddMinePow(l.board) {
+				l.powerUps[l.usingPowerUpID].activte()
+				l.usingPowerUp = false
 			}
 		case scaredyCatPow:
-			for i := 0; i < len(*l.board); i++ {
-				if !(*l.board)[i].flipped {
-					(*l.board)[i].bounce = true
-				}
+			if doScaredCat(l.board) {
+				l.powerUps[l.usingPowerUpID].activte()
+				l.usingPowerUp = false
 			}
 		case tidalWavePow:
 			l.powerUps[l.usingPowerUpID].activte()
 			l.usingPowerUp = false
 			doTidalWave(l.board)
 		case minusMinePow:
-			for i := 0; i < len(*l.board); i++ {
-				if (*l.board)[i].flipped && (*l.board)[i].adjCount > 0 {
-					(*l.board)[i].bounce = true
-				}
+			if doMinusMinePow(l.board) {
+				l.powerUps[l.usingPowerUpID].activte()
+				l.usingPowerUp = false
 			}
 		case dogWistlePow:
 			l.powerUps[l.usingPowerUpID].activte()
@@ -713,10 +710,8 @@ func (l *levelScean) update() error {
 			l.powerUps[i].activte()
 			l.duckCharacterUI.state = duckNormal
 			l.levelTimer.timer.start()
-			fmt.Println("searching...")
 			for i := 0; i < len(*l.board); i++ {
 				if (*l.board)[i].mine && (*l.board)[i].flipped {
-					fmt.Println("found")
 					(*l.board)[i].mine = false
 					(*l.board)[i].flagged = true
 					(*l.board)[i].flipped = false
@@ -737,6 +732,9 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		for i, tile := range *l.board {
 			tile.draw(screen)
 			if tile.mine && tile.flipped {
+				redraw = append(redraw, i)
+			}
+			if tile.barkCounter > 0 {
 				redraw = append(redraw, i)
 			}
 		}
@@ -817,11 +815,198 @@ func doTidalWave(board *[]n_tile) {
 }
 
 func doDogWistle(board *[]n_tile) {
-	// TOOD: finish this
-	log.Fatal("do dog wistle is not yet implemented")
+	candidates := []int{}
+	for i, tile := range *board {
+		if tile.mine && !tile.flipped && !tile.flagged {
+			candidates = append(candidates, i)
+		}
+	}
+
+	mine := &(*board)[candidates[rand.Intn(len(candidates))]]
+	mine.barkCounter = 240
+	mine.shake()
 }
 
 func doBoardShuffel(board *[]n_tile) {
-	// TOOD: finish this
-	log.Fatal("do board shuffel is not yet implemented")
+	for _, tile := range *board {
+		if tile.mine {
+			var done bool
+			for !done {
+				target := (*board)[rand.Intn(len(*board))]
+				if !target.mine && !target.flipped && !target.flagged {
+					tile.mine = false
+					target.mine = true
+					for _, adj := range tile.adj {
+						if adj != nil {
+							adj.adjCount--
+						}
+					}
+					for _, adj := range target.adj {
+						if adj != nil {
+							adj.adjCount++
+						}
+					}
+					done = true
+					break
+				}
+			}
+		}
+		for _, tile := range *board {
+			if tile.adjCount == 0 && tile.flipped {
+				tile.flipped = false
+				tile.flip()
+			}
+		}
+	}
+}
+
+func doScaredCat(board *[]n_tile) bool {
+	for i := 0; i < len(*board); i++ {
+		if !(*board)[i].flipped {
+			(*board)[i].bounce = true
+		}
+	}
+	if mbtnr(ebiten.MouseButtonLeft) {
+		minX := 999999
+		var selTile *n_tile
+		for i, tile := range *board {
+			if tile.hovered() && tile.index.x < minX {
+				minX = tile.index.x
+				selTile = &(*board)[i]
+			}
+		}
+
+		if selTile != nil && !selTile.flipped {
+			if selTile.mine {
+				for _, adj := range selTile.adj {
+					if adj != nil {
+						adj.adjCount--
+					}
+				}
+			}
+			selTile.mine = false
+			selTile.flip()
+			for _, adj := range selTile.adj {
+				if adj != nil {
+					if adj.mine {
+						for _, adjadj := range adj.adj {
+							if adjadj != nil {
+								adjadj.adjCount--
+							}
+						}
+					}
+					adj.mine = false
+					adj.flip()
+				}
+			}
+			for _, adj := range selTile.adj {
+				if adj != nil && adj.adjCount == 0 {
+					adj.flipped = false
+					adj.flip()
+				}
+			}
+			for i := 0; i < len(*board); i++ {
+				(*board)[i].bounce = false
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func doMinusMinePow(board *[]n_tile) bool {
+	for i := 0; i < len(*board); i++ {
+		if (*board)[i].flipped && (*board)[i].adjCount > 0 {
+			(*board)[i].bounce = true
+		}
+	}
+	if mbtnr(ebiten.MouseButtonLeft) {
+		minX := 999999
+		var selTile *n_tile
+		for i, tile := range *board {
+			if tile.hovered() && tile.index.x < minX {
+				minX = tile.index.x
+				selTile = &(*board)[i]
+			}
+		}
+
+		if selTile != nil && selTile.adjCount > 0 {
+			var done bool
+			for !done {
+				tile := selTile.adj[rand.Intn(8)]
+				if tile != nil && tile.mine {
+					tile.mine = false
+					for _, adj := range tile.adj {
+						if adj != nil {
+							adj.adjCount--
+							adj.flipped = false
+							adj.flip()
+							adj.bounce = false
+						}
+					}
+					done = true
+					break
+				}
+			}
+			for i := 0; i < len(*board); i++ {
+				if (*board)[i].flipped && (*board)[i].adjCount > 0 {
+					(*board)[i].bounce = false
+				}
+			}
+			return true
+		}
+	}
+	return false
+}
+
+func doAddMinePow(board *[]n_tile) bool {
+	for i := 0; i < len(*board); i++ {
+		if (*board)[i].flipped && (*board)[i].adjCount > 0 {
+			(*board)[i].bounce = true
+		}
+	}
+	if mbtnr(ebiten.MouseButtonLeft) {
+		minX := 9999999
+		var selTile *n_tile
+		for i, tile := range *board {
+			if tile.hovered() && tile.index.x < minX {
+				minX = tile.index.x
+				selTile = &(*board)[i]
+			}
+		}
+
+		if selTile != nil && selTile.adjCount > 0 {
+			var candidates int
+			for _, tile := range selTile.adj {
+				if tile != nil && !tile.flipped && !tile.mine {
+					candidates++
+				}
+			}
+			if candidates > 0 {
+				var done bool
+				for !done {
+					tile := selTile.adj[rand.Intn(8)]
+					if tile != nil && !tile.mine && !tile.flipped {
+						tile.mine = true
+						for _, adj := range tile.adj {
+							if adj != nil {
+								adj.adjCount++
+							}
+						}
+						done = true
+						break
+					}
+				}
+				for i := 0; i < len(*board); i++ {
+					if (*board)[i].flipped && (*board)[i].adjCount > 0 {
+						(*board)[i].bounce = false
+					}
+				}
+				return true
+			} else {
+				selTile.shake()
+			}
+		}
+	}
+	return false
 }

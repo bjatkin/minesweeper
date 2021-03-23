@@ -21,6 +21,7 @@ type n_tile struct {
 	iced         bool
 	icedCount    int
 	shakeCounter int
+	barkCounter  int
 	bounce       bool
 }
 
@@ -71,6 +72,7 @@ func n_newTile(level *levelScean, index v2i, iced bool, locked bool, water bool)
 func (t *n_tile) update(flipCount int) {
 	t.gfx.update()
 	t.shakeCounter--
+	t.barkCounter--
 
 	if t.flipped && flipCount > 0 && t.lockedCount > 0 {
 		t.lockedCount -= flipCount
@@ -206,5 +208,11 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 			screen.DrawImage(numberSmall[t.lockedCount], op)
 		}
 		op.GeoM.Translate(-7, -5)
+	}
+
+	// draw the barking sprite
+	if t.barkCounter > 0 && !t.flipped {
+		op.GeoM.Translate(-8, -24)
+		screen.DrawImage(n_dogBark, op)
 	}
 }
