@@ -1,33 +1,35 @@
 package main
 
 import (
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type levelScean struct {
-	boardXY          v2f
-	boardDXY         v2f
-	mouseAnchor      v2f
-	clickCount       int
-	panning          bool
-	mouseXY          v2i
-	board            *[]n_tile
-	filled           bool
-	win, loose       bool
-	paused           bool
-	bestTime         *timer
-	quit             *uiButton
-	restart          *uiButton
-	timerAccumulator int64
-	start            int64
-	flagCount        int
-	settings         *n_levelData
-	usingPowerUp     bool
-	usingPowerUpID   int
-	powerUps         [3]*powerUp
-	powerUpTypes     [3]int
+	boardXY                 v2f
+	boardDXY                v2f
+	boardWidth, boardHeight int
+	mouseAnchor             v2f
+	clickCount              int
+	panning                 bool
+	mouseXY                 v2i
+	board                   *[]n_tile
+	filled                  bool
+	win, loose              bool
+	paused                  bool
+	bestTime                *timer
+	quit                    *uiButton
+	restart                 *uiButton
+	timerAccumulator        int64
+	start                   int64
+	flagCount               int
+	settings                *n_levelData
+	usingPowerUp            bool
+	usingPowerUpID          int
+	powerUps                [3]*powerUp
+	powerUpTypes            [3]int
 
 	miniMap          *miniMap
 	duckCharacterUI  *duckFeedBack
@@ -63,6 +65,8 @@ func newLevelScean(data *n_levelData, powerUpTypes [3]int) *levelScean {
 	x := float64(width)/2*17 + 8
 	y := float64(height)/2*11 + 5
 	ret.boardXY = v2f{120 - x, 70 - y}
+	ret.boardWidth = width
+	ret.boardHeight = height
 	// get the middle tile to the middle of the screen
 
 	for i := 0; i < len(tiles); i++ {
@@ -80,40 +84,42 @@ func newLevelScean(data *n_levelData, powerUpTypes [3]int) *levelScean {
 
 // Level Assets, all of these should be loaded from the main sprite sheet
 var (
-	grassImg       [7]*ebiten.Image
-	yellowGrassImg [7]*ebiten.Image
-	pinkGrassImg   [7]*ebiten.Image
-	blueGrassImg   [7]*ebiten.Image
-	waterImg       [7]*ebiten.Image
-	iceImg         [3]*ebiten.Image
-	lock           *ebiten.Image
-	n_mineDog      *n_aniSprite
-	n_dogBark      *ebiten.Image
-	// TODO: dead duck needs an update to make his beak a little lighter
-	// cool duck could probably also use a little more dark brown in his hair
-	sideDuck        [4]*ebiten.Image
-	activePowerUp   [7]*ebiten.Image
-	inactivePowerUp [7]*ebiten.Image
-	n_markerFlag    *n_aniSprite
-	powerUpHud      *ebiten.Image
-	powerUpHudBG    *ebiten.Image
-	numberBig       [12]*ebiten.Image
-	numberSmall     [11]*ebiten.Image
-	numberBigBlue   [12]*ebiten.Image
-	numberSmallBlue [11]*ebiten.Image
-	numberBigGray   [12]*ebiten.Image
-	numberSmallGray [11]*ebiten.Image
-	miniMapHud      *ebiten.Image
-	starCountHud    *ebiten.Image
-	starCountHudBG  *ebiten.Image
-	star            *ebiten.Image
-	pauseMenu       *ebiten.Image
-	restartBtn      [3]*ebiten.Image
-	quitBtn         [3]*ebiten.Image
-	timerBG         *ebiten.Image
-	timerPlayBtn    [3]*ebiten.Image
-	timerPauseBtn   [3]*ebiten.Image
-	timeToken       *ebiten.Image
+	grassImg         [7]*ebiten.Image
+	yellowGrassImg   [7]*ebiten.Image
+	pinkGrassImg     [7]*ebiten.Image
+	blueGrassImg     [7]*ebiten.Image
+	waterImg         [7]*ebiten.Image
+	iceImg           [3]*ebiten.Image
+	lock             *ebiten.Image
+	n_mineDog        *n_aniSprite
+	n_dogBark        *ebiten.Image
+	sideDuck         [4]*ebiten.Image
+	activePowerUp    [7]*ebiten.Image
+	inactivePowerUp  [7]*ebiten.Image
+	n_markerFlag     *n_aniSprite
+	powerUpHud       *ebiten.Image
+	powerUpHudBG     *ebiten.Image
+	numberBig        [12]*ebiten.Image
+	numberSmall      [11]*ebiten.Image
+	numberBigBlue    [12]*ebiten.Image
+	numberSmallBlue  [11]*ebiten.Image
+	numberBigGray    [12]*ebiten.Image
+	numberSmallGray  [11]*ebiten.Image
+	numberBigWhite   [12]*ebiten.Image
+	numberSmallWhite [11]*ebiten.Image
+	miniMapHud       *ebiten.Image
+	starCountHud     *ebiten.Image
+	starCountHudBG   *ebiten.Image
+	star             *ebiten.Image
+	pauseMenu        *ebiten.Image
+	restartBtn       [3]*ebiten.Image
+	quitBtn          [3]*ebiten.Image
+	timerBG          *ebiten.Image
+	timerPlayBtn     [3]*ebiten.Image
+	timerPauseBtn    [3]*ebiten.Image
+	timeToken        *ebiten.Image
+	scrollArrowLeft  *ebiten.Image
+	scrollArrowUp    *ebiten.Image
 )
 
 func (l *levelScean) load() error {
@@ -265,8 +271,6 @@ func (l *levelScean) load() error {
 	}
 
 	numberBigBlue = [12]*ebiten.Image{
-		subImage(ss, 272, 32, 8, 8),
-		subImage(ss, 280, 32, 8, 8),
 		subImage(ss, 288, 32, 8, 8),
 		subImage(ss, 296, 32, 8, 8),
 		subImage(ss, 304, 32, 8, 8),
@@ -276,11 +280,11 @@ func (l *levelScean) load() error {
 		subImage(ss, 336, 32, 8, 8),
 		subImage(ss, 344, 32, 8, 8),
 		subImage(ss, 352, 32, 8, 8),
-		subImage(ss, 352, 32, 8, 8),
+		subImage(ss, 360, 32, 8, 8),
+		subImage(ss, 368, 32, 8, 8),
+		subImage(ss, 376, 32, 8, 8),
 	}
 	numberSmallBlue = [11]*ebiten.Image{
-		subImage(ss, 272, 40, 8, 8),
-		subImage(ss, 280, 40, 8, 8),
 		subImage(ss, 288, 40, 8, 8),
 		subImage(ss, 296, 40, 8, 8),
 		subImage(ss, 304, 40, 8, 8),
@@ -290,11 +294,11 @@ func (l *levelScean) load() error {
 		subImage(ss, 336, 40, 8, 8),
 		subImage(ss, 344, 40, 8, 8),
 		subImage(ss, 352, 40, 8, 8),
+		subImage(ss, 360, 40, 8, 8),
+		subImage(ss, 368, 40, 8, 8),
 	}
 
 	numberBigGray = [12]*ebiten.Image{
-		subImage(ss, 272, 48, 8, 8),
-		subImage(ss, 280, 48, 8, 8),
 		subImage(ss, 288, 48, 8, 8),
 		subImage(ss, 296, 48, 8, 8),
 		subImage(ss, 304, 48, 8, 8),
@@ -304,12 +308,12 @@ func (l *levelScean) load() error {
 		subImage(ss, 336, 48, 8, 8),
 		subImage(ss, 344, 48, 8, 8),
 		subImage(ss, 352, 48, 8, 8),
-		subImage(ss, 352, 48, 8, 8),
+		subImage(ss, 360, 48, 8, 8),
+		subImage(ss, 368, 48, 8, 8),
+		subImage(ss, 376, 48, 8, 8),
 	}
 
 	numberSmallGray = [11]*ebiten.Image{
-		subImage(ss, 272, 56, 8, 8),
-		subImage(ss, 280, 56, 8, 8),
 		subImage(ss, 288, 56, 8, 8),
 		subImage(ss, 296, 56, 8, 8),
 		subImage(ss, 304, 56, 8, 8),
@@ -319,6 +323,37 @@ func (l *levelScean) load() error {
 		subImage(ss, 336, 56, 8, 8),
 		subImage(ss, 344, 56, 8, 8),
 		subImage(ss, 352, 56, 8, 8),
+		subImage(ss, 360, 56, 8, 8),
+		subImage(ss, 368, 56, 8, 8),
+	}
+
+	numberBigWhite = [12]*ebiten.Image{
+		subImage(ss, 304, 64, 8, 8),
+		subImage(ss, 312, 64, 8, 8),
+		subImage(ss, 320, 64, 8, 8),
+		subImage(ss, 328, 64, 8, 8),
+		subImage(ss, 336, 64, 8, 8),
+		subImage(ss, 344, 64, 8, 8),
+		subImage(ss, 352, 64, 8, 8),
+		subImage(ss, 360, 64, 8, 8),
+		subImage(ss, 368, 64, 8, 8),
+		subImage(ss, 376, 64, 8, 8),
+		subImage(ss, 384, 64, 8, 8),
+		subImage(ss, 392, 64, 8, 8),
+	}
+
+	numberSmallWhite = [11]*ebiten.Image{
+		subImage(ss, 304, 72, 8, 8),
+		subImage(ss, 312, 72, 8, 8),
+		subImage(ss, 320, 72, 8, 8),
+		subImage(ss, 328, 72, 8, 8),
+		subImage(ss, 336, 72, 8, 8),
+		subImage(ss, 344, 72, 8, 8),
+		subImage(ss, 352, 72, 8, 8),
+		subImage(ss, 360, 72, 8, 8),
+		subImage(ss, 368, 72, 8, 8),
+		subImage(ss, 376, 72, 8, 8),
+		subImage(ss, 384, 72, 8, 8),
 	}
 
 	addMine = [2]*ebiten.Image{
@@ -351,11 +386,7 @@ func (l *levelScean) load() error {
 	}
 	timeToken = subImage(ss, 0, 352, 16, 16)
 
-	// TODO: add a set of white numbers
-
-	// TODO: the mini map hud needs to be changed to support 3 digit flags and tile counts
-	// so we don't have GUI issues on larger maps
-	miniMapHud = subImage(ss, 184, 32, 88, 40)
+	miniMapHud = subImage(ss, 184, 32, 94, 40)
 	starCountHud = subImage(ss, 80, 48, 40, 11)
 	starCountHudBG = subImage(ss, 80, 59, 40, 11)
 	star = subImage(ss, 136, 48, 16, 16)
@@ -386,9 +417,6 @@ func (l *levelScean) load() error {
 		subImage(ss, 96, 88, 16, 16),  // hover
 		subImage(ss, 128, 88, 16, 16), // clicked
 	}
-
-	// TODO: the background power ups need to have a darker background
-	// to make the charge up animation more obvious
 
 	// TODO: we nee a blank power up for when you don't have all 3
 	// powerups in a match
@@ -442,6 +470,9 @@ func (l *levelScean) load() error {
 		l.powerUps[1],
 		l.powerUps[2],
 	)
+
+	scrollArrowLeft = subImage(ss, 16, 352, 8, 8)
+	scrollArrowUp = subImage(ss, 24, 352, 8, 8)
 
 	l.restart = newUIButton(v2f{82, 45}, restartBtn)
 	l.quit = newUIButton(v2f{82, 65}, quitBtn)
@@ -518,8 +549,6 @@ func (l *levelScean) update() error {
 				}
 				l.levelTimer.timer.start()
 				l.filled = true
-
-				lockTiles(l.board, 10)
 			}
 
 			// this is a virgin tile we are looking to flip
@@ -568,6 +597,32 @@ func (l *levelScean) update() error {
 
 	for i := 0; i < len(*l.board); i++ {
 		(*l.board)[i].update(flipCount)
+	}
+
+	speed := 30.0
+	if btn(ebiten.KeyW) {
+		l.boardXY.y -= speed
+		if l.boardXY.y < 1 {
+			l.boardXY.y = 1
+		}
+	}
+	if btn(ebiten.KeyA) {
+		l.boardXY.x -= speed
+		if l.boardXY.x < 1 {
+			l.boardXY.x = 1
+		}
+	}
+	if btn(ebiten.KeyS) {
+		l.boardXY.y += speed
+		if l.boardXY.y+float64(l.boardHeight+1)*11 > 160 {
+			l.boardXY.y = 160 - float64(l.boardHeight+1)*11
+		}
+	}
+	if btn(ebiten.KeyD) {
+		l.boardXY.x += speed
+		if l.boardXY.x+float64(l.boardWidth+1)*17 > 239 {
+			l.boardXY.x = 239 - float64(l.boardWidth+1)*17
+		}
 	}
 
 	// finish checking for power up stuff
@@ -654,6 +709,23 @@ func (l *levelScean) update() error {
 	if l.levelTimer.pause.clicked {
 		l.paused = true
 	}
+	if btnp(ebiten.KeyEscape) {
+		if l.usingPowerUp {
+			l.usingPowerUp = false
+			for i := 0; i < len(*l.board); i++ {
+				(*l.board)[i].bounce = false
+			}
+		} else {
+			if !l.paused {
+				l.paused = true
+				l.levelTimer.timer.stop()
+			} else {
+				l.paused = false
+				l.levelTimer.timer.start()
+			}
+		}
+	}
+
 	l.duckCharacterUI.update()
 	n_mineDog.update()
 	n_markerFlag.update()
@@ -690,6 +762,14 @@ func (l *levelScean) update() error {
 			err = l.unload()
 			if err != nil {
 				return err
+			}
+		}
+	}
+
+	if l.win {
+		for i := 0; i < len(*l.board); i++ {
+			if !(*l.board)[i].mine {
+				(*l.board)[i].flip()
 			}
 		}
 	}
@@ -765,6 +845,40 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 	l.levelTimer.draw(screen)
 	l.levelStarCounter.draw(screen)
 	l.duckCharacterUI.draw(screen)
+
+	// draw scroll arrows
+	offset := math.Abs(math.Sin(float64(tickCounter) / 10))
+	x, y := l.boardXY.x+l.boardDXY.x, l.boardXY.y+l.boardDXY.y
+
+	// left scroll arrow
+	if x < 0 {
+		left := &ebiten.DrawImageOptions{}
+		left.GeoM.Translate(3-offset, 80)
+		screen.DrawImage(scrollArrowLeft, left)
+	}
+
+	// right scroll arrow
+	if x+float64(l.boardWidth+1)*17 > 240 {
+		right := &ebiten.DrawImageOptions{}
+		right.GeoM.Scale(-1, 1)
+		right.GeoM.Translate(237+offset, 80)
+		screen.DrawImage(scrollArrowLeft, right)
+	}
+
+	// up scroll arrow
+	if y < 0 {
+		up := &ebiten.DrawImageOptions{}
+		up.GeoM.Translate(120, 3-offset)
+		screen.DrawImage(scrollArrowUp, up)
+	}
+
+	// down scroll arrow
+	if y+float64(l.boardHeight+1)*11 > 160 {
+		down := &ebiten.DrawImageOptions{}
+		down.GeoM.Scale(1, -1)
+		down.GeoM.Translate(120, 157+offset)
+		screen.DrawImage(scrollArrowUp, down)
+	}
 }
 
 func (l *levelScean) fillBoard(safe *n_tile) {
@@ -835,29 +949,41 @@ func doDogWistle(board *[]n_tile) {
 }
 
 func doBoardShuffel(board *[]n_tile) {
-	for _, tile := range *board {
-		if tile.mine {
+	for i := 0; i < len(*board); i++ {
+		tile := &(*board)[i]
+		if tile.mine && rand.Float64() > 0.5 {
 			var done bool
+			var safe int
 			for !done {
-				target := (*board)[rand.Intn(len(*board))]
+				safe++
+				if safe > 100 {
+					break
+				}
+				ii := rand.Intn(len(*board))
+				if ii == i {
+					continue
+				}
+				target := &(*board)[ii]
 				if !target.mine && !target.flipped && !target.flagged {
 					tile.mine = false
 					target.mine = true
-					for _, adj := range tile.adj {
-						if adj != nil {
-							adj.adjCount--
-						}
-					}
-					for _, adj := range target.adj {
-						if adj != nil {
-							adj.adjCount++
-						}
-					}
 					done = true
-					break
 				}
 			}
 		}
+
+		// recalculate the adj counts
+		for i := 0; i < len(*board); i++ {
+			tile := &(*board)[i]
+			tile.adjCount = 0
+			for _, adj := range tile.adj {
+				if adj != nil && adj.mine {
+					tile.adjCount++
+				}
+			}
+		}
+
+		// filp any new open spaces
 		for _, tile := range *board {
 			if tile.adjCount == 0 && tile.flipped {
 				tile.flipped = false
@@ -1022,7 +1148,7 @@ func lockTiles(board *[]n_tile, tileCount int) {
 	count := tileCount
 	for count > 0 {
 		tile := &(*board)[rand.Intn(len(*board))]
-		if tile.lockedCount == 0 && tile.adjCount > 0 {
+		if tile.lockedCount == 0 && tile.adjCount > 0 && !tile.mine {
 			tile.lockedCount = 10
 			count--
 		}

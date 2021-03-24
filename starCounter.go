@@ -2,13 +2,9 @@ package main
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
-
-// pico-8 white
-var white = color.RGBA{255, 241, 232, 255}
 
 type starCounter struct {
 	coord         v2f
@@ -42,8 +38,6 @@ func (s *starCounter) draw(screen *ebiten.Image) {
 		// we convert to an int and then back to a float to floor the value
 		offset -= float64(int(perc * 12))
 	} else if s.timer.time() < s.oneStarTime {
-		offset = 16
-
 		offset = 28
 		remain := s.twoStarTime - s.timer.time()
 		perc := (1 - float64(remain)/float64(s.twoStarTime-s.threeStarTime))

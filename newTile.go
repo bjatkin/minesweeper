@@ -234,7 +234,7 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 	// draw adj numbers
 	if t.flipped && t.adjCount > 0 {
 		op.GeoM.Translate(6, 4)
-		screen.DrawImage(numberSmall[t.adjCount], op)
+		screen.DrawImage(numberSmallWhite[t.adjCount], op)
 		op.GeoM.Translate(-6, -4)
 	}
 
@@ -243,12 +243,12 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 		screen.DrawImage(lock, op)
 		op.GeoM.Translate(7, 5)
 		if t.lockedCount > 9 {
-			screen.DrawImage(numberSmall[t.lockedCount/10], op)
+			screen.DrawImage(numberSmallWhite[t.lockedCount/10], op)
 			op.GeoM.Translate(4, 0)
-			screen.DrawImage(numberSmall[t.lockedCount%10], op)
+			screen.DrawImage(numberSmallWhite[t.lockedCount%10], op)
 			op.GeoM.Translate(-4, 0)
 		} else {
-			screen.DrawImage(numberSmall[t.lockedCount], op)
+			screen.DrawImage(numberSmallWhite[t.lockedCount], op)
 		}
 		op.GeoM.Translate(-7, -5)
 	}

@@ -38,6 +38,7 @@ var allLevels = [14]*n_levelData{
 		mineCount: 40,
 		starTimes: [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
 		bestTime:  3*min + 45*sec,
+		unlocked:  true,
 		nextLevel: 1,
 	},
 	// level 3

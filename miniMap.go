@@ -12,6 +12,8 @@ var (
 	darkGreen = color.RGBA{0, 135, 81, 255}
 	gray      = color.RGBA{95, 87, 79, 255}
 	darkGray  = color.RGBA{29, 43, 83, 255}
+	lightGray = color.RGBA{194, 195, 199, 255}
+	white     = color.RGBA{255, 241, 232, 255}
 )
 
 type miniMap struct {
@@ -21,6 +23,7 @@ type miniMap struct {
 	width, height    int
 	flippedTiles     [32][32]uint8
 	grassTiles       [32][32]uint8
+	alertTiles       [32][32]uint8
 	parent           *levelScean
 	mines            int
 	flippedTileCount int
@@ -73,6 +76,7 @@ func (mm *miniMap) update() {
 		for y := 0; y < 32; y++ {
 			mm.flippedTiles[x][y] = 0
 			mm.grassTiles[x][y] = 0
+			mm.alertTiles[x][y] = 0
 		}
 	}
 
@@ -80,7 +84,11 @@ func (mm *miniMap) update() {
 		if tile.flipped {
 			mm.flippedTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
 			mm.flippedTileCount++
-		} else {
+		}
+		if tile.barkCounter > 0 {
+			mm.alertTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
+		}
+		if !tile.flipped {
 			mm.grassTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
 		}
 		if tile.flagged {
@@ -99,14 +107,20 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 		for y := 0; y < 32; y++ {
 			grass := mm.grassTiles[x][y]
 			flip := mm.flippedTiles[x][y]
+			alert := mm.alertTiles[x][y]
 			total := grass + flip
 			if int(total) > (mm.scale*mm.scale)/2 {
-				if grass > flip {
+				if alert == 0 && grass >= flip {
 					// put a green pixel here
 					miniMap.Set(x, y, green)
-				} else {
+				}
+				if alert == 0 && grass < flip {
 					// put a flipped pixel here
 					miniMap.Set(x, y, gray)
+				}
+				if alert > 0 {
+					// there is an alert here
+					miniMap.Set(x, y, white)
 				}
 				continue
 			}
@@ -117,6 +131,9 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 			if y > 0 && miniMap.At(x, y-1) == gray {
 				miniMap.Set(x, y, darkGray)
 			}
+			if y > 0 && miniMap.At(x, y-1) == white {
+				miniMap.Set(x, y, lightGray)
+			}
 		}
 	}
 
@@ -126,7 +143,7 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 
 	// total mines
 	cop := &ebiten.DrawImageOptions{}
-	cop.GeoM.Translate(mm.coord.x+67, mm.coord.y+9)
+	cop.GeoM.Translate(mm.coord.x+72, mm.coord.y+9)
 	if mm.mines > 99 {
 		screen.DrawImage(numberSmallGray[mm.mines/100], cop)
 		cop.GeoM.Translate(4, 0)
@@ -151,16 +168,18 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[(mm.flaggedTileCount%100)%10], cop)
 	} else if mm.mines > 9 {
+		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[mm.flaggedTileCount/10], cop)
 		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[mm.flaggedTileCount%10], cop)
 	} else {
+		cop.GeoM.Translate(12, 0)
 		screen.DrawImage(numberBigBlue[mm.flaggedTileCount], cop)
 	}
 
 	// total tiles - mines
 	cop.GeoM.Reset()
-	cop.GeoM.Translate(mm.coord.x+71, mm.coord.y+24)
+	cop.GeoM.Translate(mm.coord.x+76, mm.coord.y+24)
 	totalTiles := mm.tileCount - mm.mines
 	if totalTiles > 99 {
 		screen.DrawImage(numberSmallGray[totalTiles/100], cop)
@@ -186,10 +205,12 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[(mm.flippedTileCount%100)%10], cop)
 	} else if mm.mines > 9 {
+		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[mm.flippedTileCount/10], cop)
 		cop.GeoM.Translate(6, 0)
 		screen.DrawImage(numberBigBlue[mm.flippedTileCount%10], cop)
 	} else {
+		cop.GeoM.Translate(12, 0)
 		screen.DrawImage(numberBigBlue[mm.flippedTileCount], cop)
 	}
 }
