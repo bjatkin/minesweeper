@@ -28,11 +28,10 @@ const (
 // this should be loaded by the level select screen
 var (
 	lvlSelectMenu *ebiten.Image
-	// TODO: add hazard tile for fading flags and time trials
-	levelHazard [4]*ebiten.Image
-	startBtn    [3]*ebiten.Image
-	powSelMenu  *ebiten.Image
-	goldStar    *ebiten.Image
+	levelHazard   [4]*ebiten.Image
+	startBtn      [3]*ebiten.Image
+	powSelMenu    *ebiten.Image
+	goldStar      *ebiten.Image
 )
 
 func newLevelStartMenu() *levelStartMenu {
@@ -147,13 +146,13 @@ func (l *levelStartMenu) draw(screen *ebiten.Image) {
 	// draw hazards
 	hop := &ebiten.DrawImageOptions{}
 	hop.GeoM.Translate(88, 103)
-	if l.levelData.fadeFlags {
+	if l.levelData.frozenTileCount > 0 {
 		screen.DrawImage(levelHazard[0], hop)
 	}
-	if l.levelData.frozenTileCount > 0 {
+	if l.levelData.lockedTileCount > 0 {
 		screen.DrawImage(levelHazard[1], hop)
 	}
-	if l.levelData.lockedTileCount > 0 {
+	if l.levelData.fadeFlags {
 		screen.DrawImage(levelHazard[2], hop)
 	}
 	if l.levelData.timeTrial {

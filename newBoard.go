@@ -30,6 +30,7 @@ type levelScean struct {
 	usingPowerUpID          int
 	powerUps                [3]*powerUp
 	powerUpTypes            [3]int
+	powSelDone              bool
 
 	miniMap          *miniMap
 	duckCharacterUI  *duckFeedBack
@@ -510,14 +511,17 @@ func (l *levelScean) update() error {
 	if !l.usingPowerUp {
 		if l.powerUps[0].wasSelected() {
 			l.usingPowerUp = true
+			l.powSelDone = false
 			l.usingPowerUpID = 0
 		}
 		if l.powerUps[1].wasSelected() {
 			l.usingPowerUp = true
+			l.powSelDone = false
 			l.usingPowerUpID = 1
 		}
 		if l.powerUps[2].wasSelected() {
 			l.usingPowerUp = true
+			l.powSelDone = false
 			l.usingPowerUpID = 2
 		}
 	}
@@ -626,7 +630,11 @@ func (l *levelScean) update() error {
 	}
 
 	// finish checking for power up stuff
-	if l.usingPowerUp {
+	if l.usingPowerUp &&
+		l.powSelDone &&
+		!l.paused &&
+		l.mouseAnchor.dist(mCoordsF()) < 5 &&
+		l.clickCount < 30 {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
 			if doAddMinePow(l.board) {
@@ -659,6 +667,10 @@ func (l *levelScean) update() error {
 			// this can only be activated when we loose
 			l.usingPowerUp = false
 		}
+	}
+
+	if mbtnr(ebiten.MouseButtonLeft) {
+		l.powSelDone = true
 	}
 
 	// flag a tile
@@ -847,37 +859,39 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 	l.duckCharacterUI.draw(screen)
 
 	// draw scroll arrows
-	offset := math.Abs(math.Sin(float64(tickCounter) / 10))
-	x, y := l.boardXY.x+l.boardDXY.x, l.boardXY.y+l.boardDXY.y
+	if !l.paused {
+		offset := math.Abs(math.Sin(float64(tickCounter) / 10))
+		x, y := l.boardXY.x+l.boardDXY.x, l.boardXY.y+l.boardDXY.y
 
-	// left scroll arrow
-	if x < 0 {
-		left := &ebiten.DrawImageOptions{}
-		left.GeoM.Translate(3-offset, 80)
-		screen.DrawImage(scrollArrowLeft, left)
-	}
+		// left scroll arrow
+		if x < 0 {
+			left := &ebiten.DrawImageOptions{}
+			left.GeoM.Translate(3-offset, 80)
+			screen.DrawImage(scrollArrowLeft, left)
+		}
 
-	// right scroll arrow
-	if x+float64(l.boardWidth+1)*17 > 240 {
-		right := &ebiten.DrawImageOptions{}
-		right.GeoM.Scale(-1, 1)
-		right.GeoM.Translate(237+offset, 80)
-		screen.DrawImage(scrollArrowLeft, right)
-	}
+		// right scroll arrow
+		if x+float64(l.boardWidth+1)*17 > 240 {
+			right := &ebiten.DrawImageOptions{}
+			right.GeoM.Scale(-1, 1)
+			right.GeoM.Translate(237+offset, 80)
+			screen.DrawImage(scrollArrowLeft, right)
+		}
 
-	// up scroll arrow
-	if y < 0 {
-		up := &ebiten.DrawImageOptions{}
-		up.GeoM.Translate(120, 3-offset)
-		screen.DrawImage(scrollArrowUp, up)
-	}
+		// up scroll arrow
+		if y < 0 {
+			up := &ebiten.DrawImageOptions{}
+			up.GeoM.Translate(120, 3-offset)
+			screen.DrawImage(scrollArrowUp, up)
+		}
 
-	// down scroll arrow
-	if y+float64(l.boardHeight+1)*11 > 160 {
-		down := &ebiten.DrawImageOptions{}
-		down.GeoM.Scale(1, -1)
-		down.GeoM.Translate(120, 157+offset)
-		screen.DrawImage(scrollArrowUp, down)
+		// down scroll arrow
+		if y+float64(l.boardHeight+1)*11 > 160 {
+			down := &ebiten.DrawImageOptions{}
+			down.GeoM.Scale(1, -1)
+			down.GeoM.Translate(120, 157+offset)
+			screen.DrawImage(scrollArrowUp, down)
+		}
 	}
 }
 

@@ -97,14 +97,11 @@ func (l *levelSelect) load() error {
 
 	mapUIHeader = subImage(ss, 240, 16, 240, 10)
 
-	// TODO: add the other 2 hazards here once they've been drawn
 	levelHazard = [4]*ebiten.Image{
 		subImage(ss, 224, 0, 16, 16),
 		subImage(ss, 240, 0, 16, 16),
-
-		// replace these
-		subImage(ss, 240, 0, 16, 16),
-		subImage(ss, 240, 0, 16, 16),
+		subImage(ss, 256, 0, 16, 16),
+		subImage(ss, 272, 0, 16, 16),
 	}
 
 	startBtn = [3]*ebiten.Image{

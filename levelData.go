@@ -38,20 +38,24 @@ var allLevels = [14]*n_levelData{
 		mineCount: 40,
 		starTimes: [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
 		bestTime:  3*min + 45*sec,
-		unlocked:  true,
-		nextLevel: 1,
+		nextLevel: 2,
 	},
 	// level 3
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 3,
 	},
 	// level 4
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:          newSquareLayout(16, 16),
+		mineCount:       40,
+		frozenTileCount: 50,
+		starTimes:       [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
+		bestTime:        3*min + 10*sec,
+		nextLevel:       4,
 	},
 	// level 5
 	{
