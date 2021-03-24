@@ -1244,11 +1244,19 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 			}
 		}
 
-		if selTile != nil && selTile.adjCount > 0 {
+		var flagCount int
+		if selTile != nil {
+			for _, adj := range selTile.adj {
+				if adj != nil && adj.flagged {
+					flagCount++
+				}
+			}
+		}
+		if selTile != nil && selTile.adjCount > flagCount {
 			var done bool
 			for !done {
 				tile := selTile.adj[rand.Intn(8)]
-				if tile != nil && tile.mine {
+				if tile != nil && tile.mine && !tile.flagged {
 					tile.mine = false
 					for _, adj := range tile.adj {
 						if adj != nil {
@@ -1269,6 +1277,14 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 				}
 			}
 			return true
+		}
+		if selTile != nil && selTile.adjCount <= flagCount {
+			selTile.shake()
+			for _, adj := range selTile.adj {
+				if adj != nil && adj.flagged {
+					adj.shake()
+				}
+			}
 		}
 	}
 	return false
@@ -1322,6 +1338,11 @@ func doAddMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 				return true
 			} else {
 				selTile.shake()
+				for _, adj := range selTile.adj {
+					if adj != nil && !adj.flipped {
+						adj.shake()
+					}
+				}
 			}
 		}
 	}
