@@ -174,7 +174,6 @@ func (l *levelSelect) load() error {
 	}
 	// end foreign assets
 
-	l.startMenu = newLevelStartMenu()
 	l.bestTime = &timer{coord: v2f{194, 1}, timerAccumulator: allLevels[0].bestTime}
 	l.currLevel = allLevels[0]
 

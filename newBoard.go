@@ -361,6 +361,12 @@ func (l *levelScean) load() error {
 		subImage(ss, 384, 72, 8, 8),
 	}
 
+	startBtn = [3]*ebiten.Image{
+		subImage(ss, 80, 136, 66, 16),
+		subImage(ss, 80, 120, 66, 16),
+		subImage(ss, 80, 104, 66, 16),
+	}
+
 	addMine = [2]*ebiten.Image{
 		subImage(ss, 0, 0, 16, 16),
 		subImage(ss, 112, 0, 16, 16),
@@ -554,7 +560,7 @@ func (l *levelScean) update() error {
 
 	// check if were flipping a tile
 	var flipCount int
-	if !l.win &&
+	if !l.win && !l.loose &&
 		mbtnr(ebiten.MouseButtonLeft) &&
 		l.mouseAnchor.dist(mCoordsF()) < 5 &&
 		l.clickCount < 30 &&
@@ -657,22 +663,18 @@ func (l *levelScean) update() error {
 	}
 
 	// finish checking for power up stuff
-	if !l.win &&
+	if !l.win && !l.loose &&
 		l.usingPowerUp &&
 		l.powSelDone &&
 		!l.paused {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
-			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
-				l.clickCount < 30 &&
-				doAddMinePow(l.board) {
+			if doAddMinePow(l.board, l.mouseAnchor, l.clickCount) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
 		case scaredyCatPow:
-			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
-				l.clickCount < 30 &&
-				doScaredCat(l.board) {
+			if doScaredCat(l.board, l.mouseAnchor, l.clickCount) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -681,9 +683,7 @@ func (l *levelScean) update() error {
 			l.usingPowerUp = false
 			doTidalWave(l.board)
 		case minusMinePow:
-			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
-				l.clickCount < 30 &&
-				doMinusMinePow(l.board) {
+			if doMinusMinePow(l.board, l.mouseAnchor, l.clickCount) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -706,7 +706,7 @@ func (l *levelScean) update() error {
 	}
 
 	// flag a tile
-	if !l.win &&
+	if !l.win && !l.loose &&
 		mbtnp(ebiten.MouseButtonRight) &&
 		!l.paused {
 		minX := 9999999
@@ -746,9 +746,8 @@ func (l *levelScean) update() error {
 		l.boardDXY = v2f{}
 	}
 
-	// update the mini map and level timer + some other assets
+	// update the level timer + some other assets
 	if !l.win {
-		l.miniMap.update()
 		l.levelTimer.update()
 		if l.levelTimer.play.clicked {
 			l.paused = false
@@ -775,6 +774,7 @@ func (l *levelScean) update() error {
 
 	}
 
+	l.miniMap.update()
 	l.duckCharacterUI.update()
 	n_mineDog.update()
 	n_markerFlag.update()
@@ -802,7 +802,9 @@ func (l *levelScean) update() error {
 		}
 		if l.quit.clicked {
 			// quit to the map
-			currentScean = &levelSelect{}
+			currentScean = &levelSelect{
+				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+			}
 			err := currentScean.load()
 			if err != nil {
 				return err
@@ -820,6 +822,9 @@ func (l *levelScean) update() error {
 			if !(*l.board)[i].mine {
 				(*l.board)[i].flip()
 			}
+			if (*l.board)[i].mine && !(*l.board)[i].flagged {
+				(*l.board)[i].flag()
+			}
 		}
 		l.powerUps[0].available = false
 		l.powerUps[1].available = false
@@ -830,7 +835,9 @@ func (l *levelScean) update() error {
 			l.settings.beaten = true
 			allLevels[l.settings.nextLevel].unlocked = true
 			// quit to the map
-			currentScean = &levelSelect{}
+			currentScean = &levelSelect{
+				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+			}
 			err := currentScean.load()
 			if err != nil {
 				return err
@@ -858,6 +865,55 @@ func (l *levelScean) update() error {
 					n_mineDog.pause()
 					break
 				}
+			}
+		}
+	}
+
+	// run the you lost code
+	if l.loose {
+		for i := 0; i < len(*l.board); i++ {
+			if (*l.board)[i].mine && !(*l.board)[i].flagged {
+				(*l.board)[i].flag()
+			}
+			if !(*l.board)[i].mine && (*l.board)[i].flagged {
+				(*l.board)[i].flag()
+			}
+		}
+		l.powerUps[0].available = false
+		l.powerUps[1].available = false
+		l.powerUps[2].available = false
+		l.restart.coord = v2f{64, 19}
+		l.quit.coord = v2f{122, 19}
+
+		l.restart.update()
+		l.quit.update()
+
+		if l.restart.clicked {
+			// restart the board
+			currentScean = newLevelScean(l.settings, l.powerUpTypes)
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
+
+			err = l.unload()
+			if err != nil {
+				return err
+			}
+		}
+		if l.quit.clicked {
+			// quit to the map
+			currentScean = &levelSelect{
+				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+			}
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
+
+			err = l.unload()
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -935,6 +991,7 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		}
 	}
 
+	// draw the win screen
 	if l.win {
 		if l.bestTime.timerAccumulator > l.levelTimer.timer.timerAccumulator {
 			l.bestTime.timerAccumulator = l.levelTimer.timer.timerAccumulator
@@ -973,6 +1030,15 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		if l.settings.stars > 2 {
 			screen.DrawImage(star, starOP)
 		}
+	}
+
+	if l.loose {
+		looseOP := &ebiten.DrawImageOptions{}
+		looseOP.GeoM.Translate(59, 0)
+		screen.DrawImage(looseMenu, looseOP)
+
+		l.restart.draw(screen)
+		l.quit.draw(screen)
 	}
 }
 
@@ -1088,13 +1154,15 @@ func doBoardShuffel(board *[]n_tile) {
 	}
 }
 
-func doScaredCat(board *[]n_tile) bool {
+func doScaredCat(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 	for i := 0; i < len(*board); i++ {
 		if !(*board)[i].flipped {
 			(*board)[i].bounce = true
 		}
 	}
-	if mbtnr(ebiten.MouseButtonLeft) {
+	if mouseAnchor.dist(mCoordsF()) < 5 &&
+		clickCount < 30 &&
+		mbtnr(ebiten.MouseButtonLeft) {
 		minX := 999999
 		var selTile *n_tile
 		for i, tile := range *board {
@@ -1142,13 +1210,15 @@ func doScaredCat(board *[]n_tile) bool {
 	return false
 }
 
-func doMinusMinePow(board *[]n_tile) bool {
+func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 	for i := 0; i < len(*board); i++ {
 		if (*board)[i].flipped && (*board)[i].adjCount > 0 {
 			(*board)[i].bounce = true
 		}
 	}
-	if mbtnr(ebiten.MouseButtonLeft) {
+	if mouseAnchor.dist(mCoordsF()) < 5 &&
+		clickCount < 30 &&
+		mbtnr(ebiten.MouseButtonLeft) {
 		minX := 999999
 		var selTile *n_tile
 		for i, tile := range *board {
@@ -1187,13 +1257,15 @@ func doMinusMinePow(board *[]n_tile) bool {
 	return false
 }
 
-func doAddMinePow(board *[]n_tile) bool {
+func doAddMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 	for i := 0; i < len(*board); i++ {
 		if (*board)[i].flipped && (*board)[i].adjCount > 0 {
 			(*board)[i].bounce = true
 		}
 	}
-	if mbtnr(ebiten.MouseButtonLeft) {
+	if mouseAnchor.dist(mCoordsF()) < 5 &&
+		clickCount < 30 &&
+		mbtnr(ebiten.MouseButtonLeft) {
 		minX := 9999999
 		var selTile *n_tile
 		for i, tile := range *board {

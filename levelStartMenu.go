@@ -34,12 +34,11 @@ var (
 	goldStar      *ebiten.Image
 )
 
-func newLevelStartMenu() *levelStartMenu {
+func newLevelStartMenu(pType [3]int) *levelStartMenu {
 	ret := &levelStartMenu{
-		// TODO: we need to have a none power that draws a blank
-		powOne:   &uiIcon{coord: v2f{88, 71}, size: v2i{16, 16}, img: minusMine[0]},
-		powTwo:   &uiIcon{coord: v2f{109, 71}, size: v2i{16, 16}, img: minusMine[0]},
-		powThree: &uiIcon{coord: v2f{130, 71}, size: v2i{16, 16}, img: minusMine[0]},
+		powOne:   newPowIcon(pType[0], v2f{88, 71}),
+		powTwo:   newPowIcon(pType[1], v2f{109, 71}),
+		powThree: newPowIcon(pType[2], v2f{130, 71}),
 		startBtn: newUIButton(v2f{84, 126}, startBtn),
 		powIcons: [7]*uiIcon{
 			{coord: v2f{0, 17}, size: v2i{16, 16}, img: addMine[0], powType: addMinePow},
@@ -214,7 +213,7 @@ type uiIcon struct {
 	clicked bool
 }
 
-func newPowIcon(powType int) *uiIcon {
+func newPowIcon(powType int, coord v2f) *uiIcon {
 	var img *ebiten.Image
 	switch powType {
 	case addMinePow:
@@ -232,7 +231,7 @@ func newPowIcon(powType int) *uiIcon {
 	case dogABonePow:
 		img = dogABone[0]
 	}
-	return &uiIcon{img: img, powType: powType}
+	return &uiIcon{coord: coord, img: img, powType: powType, size: v2i{16, 16}}
 }
 
 func (i *uiIcon) update() {
