@@ -11,8 +11,28 @@ type starCounter struct {
 	threeStarTime int64
 	twoStarTime   int64
 	oneStarTime   int64
-	starCount     int
+	starCount     int8
 	timer         *timer
+}
+
+func (s *starCounter) getStarCount() int8 {
+	var count int8
+	if s.timer.time() < s.oneStarTime {
+		count = 1
+	}
+	if s.timer.time() < s.twoStarTime {
+		count = 2
+	}
+	if s.timer.time() < s.threeStarTime {
+		count = 3
+	}
+
+	if count > s.starCount {
+		s.starCount = count
+		return count
+	}
+
+	return s.starCount
 }
 
 func (s *starCounter) draw(screen *ebiten.Image) {

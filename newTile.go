@@ -254,7 +254,7 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 	}
 
 	// draw the barking sprite
-	if t.barkCounter > 0 && !t.flipped {
+	if t.barkCounter > 0 && !t.flipped && !t.flagged {
 		op.GeoM.Translate(-8, -24)
 		screen.DrawImage(n_dogBark, op)
 	}

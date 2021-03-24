@@ -414,7 +414,7 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 			lop.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
 		}
 		if allLevels[i].unlocked {
-			// draw the stars
+			// draw the stars on the level icon
 			screen.DrawImage(unlockedLvl, lop)
 			if allLevels[i].stars > 0 {
 				lop.GeoM.Translate(6, 2)
@@ -493,10 +493,10 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 	// best timer
 	l.bestTime.draw(screen)
 
-	// map ui header star
+	// draw the map ui header star
 	sop := &ebiten.DrawImageOptions{}
 	if l.currLevel.stars > 0 {
-		sop.GeoM.Translate(62, 2)
+		sop.GeoM.Translate(54, 2)
 		screen.DrawImage(redStar, sop)
 	}
 	if l.currLevel.stars > 1 {

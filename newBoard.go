@@ -22,6 +22,7 @@ type levelScean struct {
 	bestTime                *timer
 	quit                    *uiButton
 	restart                 *uiButton
+	continueGame            *uiButton
 	timerAccumulator        int64
 	start                   int64
 	flagCount               int
@@ -114,6 +115,7 @@ var (
 	star             *ebiten.Image
 	pauseMenu        *ebiten.Image
 	restartBtn       [3]*ebiten.Image
+	continueBtn      [3]*ebiten.Image
 	quitBtn          [3]*ebiten.Image
 	timerBG          *ebiten.Image
 	timerPlayBtn     [3]*ebiten.Image
@@ -121,6 +123,8 @@ var (
 	timeToken        *ebiten.Image
 	scrollArrowLeft  *ebiten.Image
 	scrollArrowUp    *ebiten.Image
+	winMenu          *ebiten.Image
+	looseMenu        *ebiten.Image
 )
 
 func (l *levelScean) load() error {
@@ -405,6 +409,12 @@ func (l *levelScean) load() error {
 		subImage(ss, 248, 72, 56, 16),  // clicked
 	}
 
+	continueBtn = [3]*ebiten.Image{
+		subImage(ss, 304, 152, 66, 16), // normal
+		subImage(ss, 304, 136, 66, 16), // hover
+		subImage(ss, 304, 120, 66, 16), // clicked
+	}
+
 	timerBG = subImage(ss, 96, 72, 49, 16)
 
 	timerPlayBtn = [3]*ebiten.Image{
@@ -450,6 +460,9 @@ func (l *levelScean) load() error {
 		subImage(ss, 208, 0, 16, 16),
 	}
 
+	winMenu = subImage(ss, 0, 368, 122, 96)
+	looseMenu = subImage(ss, 304, 80, 122, 40)
+
 	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.settings.mineCount)
 	l.levelTimer = newBoardTimer(v2f{})
 	l.levelStarCounter = &starCounter{
@@ -477,6 +490,7 @@ func (l *levelScean) load() error {
 
 	l.restart = newUIButton(v2f{82, 45}, restartBtn)
 	l.quit = newUIButton(v2f{82, 65}, quitBtn)
+	l.continueGame = newUIButton(v2f{87, 72}, continueBtn)
 	l.bestTime = &timer{timerAccumulator: l.settings.bestTime, coord: v2f{92, 96}}
 
 	return nil
@@ -489,6 +503,9 @@ func (l *levelScean) unload() error {
 }
 
 func (l *levelScean) update() error {
+	// TODO: take this out
+	// l.win = true
+
 	// check for a win first thing so we get the lowest possible time
 	var flagged int
 	var flipped int
@@ -511,24 +528,34 @@ func (l *levelScean) update() error {
 	if !l.usingPowerUp {
 		if l.powerUps[0].wasSelected() {
 			l.usingPowerUp = true
-			l.powSelDone = false
+			l.powSelDone = true
+			if mbtn(ebiten.MouseButtonLeft) {
+				l.powSelDone = false
+			}
 			l.usingPowerUpID = 0
 		}
 		if l.powerUps[1].wasSelected() {
 			l.usingPowerUp = true
-			l.powSelDone = false
+			l.powSelDone = true
+			if mbtn(ebiten.MouseButtonLeft) {
+				l.powSelDone = false
+			}
 			l.usingPowerUpID = 1
 		}
 		if l.powerUps[2].wasSelected() {
 			l.usingPowerUp = true
-			l.powSelDone = false
+			l.powSelDone = true
+			if mbtn(ebiten.MouseButtonLeft) {
+				l.powSelDone = false
+			}
 			l.usingPowerUpID = 2
 		}
 	}
 
 	// check if were flipping a tile
 	var flipCount int
-	if mbtnr(ebiten.MouseButtonLeft) &&
+	if !l.win &&
+		mbtnr(ebiten.MouseButtonLeft) &&
 		l.mouseAnchor.dist(mCoordsF()) < 5 &&
 		l.clickCount < 30 &&
 		!l.usingPowerUp &&
@@ -630,19 +657,22 @@ func (l *levelScean) update() error {
 	}
 
 	// finish checking for power up stuff
-	if l.usingPowerUp &&
+	if !l.win &&
+		l.usingPowerUp &&
 		l.powSelDone &&
-		!l.paused &&
-		l.mouseAnchor.dist(mCoordsF()) < 5 &&
-		l.clickCount < 30 {
+		!l.paused {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
-			if doAddMinePow(l.board) {
+			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
+				l.clickCount < 30 &&
+				doAddMinePow(l.board) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
 		case scaredyCatPow:
-			if doScaredCat(l.board) {
+			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
+				l.clickCount < 30 &&
+				doScaredCat(l.board) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -651,7 +681,9 @@ func (l *levelScean) update() error {
 			l.usingPowerUp = false
 			doTidalWave(l.board)
 		case minusMinePow:
-			if doMinusMinePow(l.board) {
+			if l.mouseAnchor.dist(mCoordsF()) < 5 &&
+				l.clickCount < 30 &&
+				doMinusMinePow(l.board) {
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -674,7 +706,9 @@ func (l *levelScean) update() error {
 	}
 
 	// flag a tile
-	if mbtnp(ebiten.MouseButtonRight) && !l.paused {
+	if !l.win &&
+		mbtnp(ebiten.MouseButtonRight) &&
+		!l.paused {
 		minX := 9999999
 		var selTile *n_tile
 		for i, tile := range *l.board {
@@ -713,29 +747,32 @@ func (l *levelScean) update() error {
 	}
 
 	// update the mini map and level timer + some other assets
-	l.miniMap.update()
-	l.levelTimer.update()
-	if l.levelTimer.play.clicked {
-		l.paused = false
-	}
-	if l.levelTimer.pause.clicked {
-		l.paused = true
-	}
-	if btnp(ebiten.KeyEscape) {
-		if l.usingPowerUp {
-			l.usingPowerUp = false
-			for i := 0; i < len(*l.board); i++ {
-				(*l.board)[i].bounce = false
-			}
-		} else {
-			if !l.paused {
-				l.paused = true
-				l.levelTimer.timer.stop()
+	if !l.win {
+		l.miniMap.update()
+		l.levelTimer.update()
+		if l.levelTimer.play.clicked {
+			l.paused = false
+		}
+		if l.levelTimer.pause.clicked {
+			l.paused = true
+		}
+		if btnp(ebiten.KeyEscape) {
+			if l.usingPowerUp {
+				l.usingPowerUp = false
+				for i := 0; i < len(*l.board); i++ {
+					(*l.board)[i].bounce = false
+				}
 			} else {
-				l.paused = false
-				l.levelTimer.timer.start()
+				if !l.paused {
+					l.paused = true
+					l.levelTimer.timer.stop()
+				} else {
+					l.paused = false
+					l.levelTimer.timer.start()
+				}
 			}
 		}
+
 	}
 
 	l.duckCharacterUI.update()
@@ -784,21 +821,25 @@ func (l *levelScean) update() error {
 				(*l.board)[i].flip()
 			}
 		}
-	}
+		l.powerUps[0].available = false
+		l.powerUps[1].available = false
+		l.powerUps[2].available = false
+		l.continueGame.update()
 
-	if l.win && btnp(ebiten.KeyEnter) {
-		l.settings.beaten = true
-		allLevels[l.settings.nextLevel].unlocked = true
-		// quit to the map
-		currentScean = &levelSelect{}
-		err := currentScean.load()
-		if err != nil {
-			return err
-		}
+		if btnp(ebiten.KeyEnter) || l.continueGame.clicked {
+			l.settings.beaten = true
+			allLevels[l.settings.nextLevel].unlocked = true
+			// quit to the map
+			currentScean = &levelSelect{}
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
 
-		err = l.unload()
-		if err != nil {
-			return err
+			err = l.unload()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -891,6 +932,46 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 			down.GeoM.Scale(1, -1)
 			down.GeoM.Translate(120, 157+offset)
 			screen.DrawImage(scrollArrowUp, down)
+		}
+	}
+
+	if l.win {
+		if l.bestTime.timerAccumulator > l.levelTimer.timer.timerAccumulator {
+			l.bestTime.timerAccumulator = l.levelTimer.timer.timerAccumulator
+			l.settings.bestTime = l.bestTime.timerAccumulator
+		}
+		winOP := &ebiten.DrawImageOptions{}
+		winOP.GeoM.Translate(59, 0)
+		screen.DrawImage(winMenu, winOP)
+
+		// steal the best time timer
+		old := l.bestTime.coord
+		l.bestTime.coord = v2f{130, 57}
+		l.bestTime.draw(screen)
+		l.bestTime.coord = old
+
+		// steal the level timer
+		old = l.levelTimer.timer.coord
+		l.levelTimer.timer.coord = v2f{65, 57}
+		l.levelTimer.timer.draw(screen)
+		l.levelTimer.timer.coord = old
+
+		l.continueGame.draw(screen)
+
+		// draw your reward stars
+		l.settings.stars = l.levelStarCounter.getStarCount()
+		starOP := &ebiten.DrawImageOptions{}
+		starOP.GeoM.Translate(96, 20)
+		if l.settings.stars > 0 {
+			screen.DrawImage(star, starOP)
+			starOP.GeoM.Translate(16, 0)
+		}
+		if l.settings.stars > 1 {
+			screen.DrawImage(star, starOP)
+			starOP.GeoM.Translate(16, 0)
+		}
+		if l.settings.stars > 2 {
+			screen.DrawImage(star, starOP)
 		}
 	}
 }
