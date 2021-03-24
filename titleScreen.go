@@ -51,7 +51,8 @@ func (t *titleScreanScean) update() error {
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
 		currentScean = newLevelScean(
 			allLevels[0],
-			[3]int{dogWistlePow, dogWistlePow, dogWistlePow},
+			[3]int{minusMinePow, minusMinePow, minusMinePow},
+			0,
 		)
 
 		var err error

@@ -27,22 +27,26 @@ type levelScean struct {
 	start                   int64
 	flagCount               int
 	settings                *n_levelData
+	jeepIndexReturn         int
 	usingPowerUp            bool
 	usingPowerUpID          int
 	powerUps                [3]*powerUp
 	powerUpTypes            [3]int
 	powSelDone              bool
 
+	mineCount        int
 	miniMap          *miniMap
 	duckCharacterUI  *duckFeedBack
 	levelTimer       *boardTimer
 	levelStarCounter *starCounter
 }
 
-func newLevelScean(data *n_levelData, powerUpTypes [3]int) *levelScean {
+func newLevelScean(data *n_levelData, powerUpTypes [3]int, jeepIndexReturn int) *levelScean {
 	ret := &levelScean{
-		settings:     data,
-		powerUpTypes: powerUpTypes,
+		settings:        data,
+		powerUpTypes:    powerUpTypes,
+		jeepIndexReturn: jeepIndexReturn,
+		mineCount:       data.mineCount,
 	}
 
 	minX, maxX := 999999, 0
@@ -469,7 +473,7 @@ func (l *levelScean) load() error {
 	winMenu = subImage(ss, 0, 368, 122, 96)
 	looseMenu = subImage(ss, 304, 80, 122, 40)
 
-	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.settings.mineCount)
+	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.mineCount)
 	l.levelTimer = newBoardTimer(v2f{})
 	l.levelStarCounter = &starCounter{
 		coord:         v2f{0, 20},
@@ -509,9 +513,6 @@ func (l *levelScean) unload() error {
 }
 
 func (l *levelScean) update() error {
-	// TODO: take this out
-	// l.win = true
-
 	// check for a win first thing so we get the lowest possible time
 	var flagged int
 	var flipped int
@@ -523,8 +524,8 @@ func (l *levelScean) update() error {
 			flipped++
 		}
 	}
-	if flagged == l.settings.mineCount ||
-		flipped == len(*l.board)-l.settings.mineCount {
+	if flagged == l.mineCount ||
+		flipped == len(*l.board)-l.mineCount {
 		l.win = true
 		l.levelTimer.timer.stop()
 		l.duckCharacterUI.state = duckCool
@@ -670,11 +671,21 @@ func (l *levelScean) update() error {
 		switch l.powerUps[l.usingPowerUpID].pType {
 		case addMinePow:
 			if doAddMinePow(l.board, l.mouseAnchor, l.clickCount) {
+				l.mineCount++
+				l.miniMap.mineCount = l.mineCount
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
 		case scaredyCatPow:
 			if doScaredCat(l.board, l.mouseAnchor, l.clickCount) {
+				var mineCount int
+				for _, tile := range *l.board {
+					if tile.mine {
+						mineCount++
+					}
+				}
+				l.mineCount = mineCount
+				l.miniMap.mineCount = l.mineCount
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -684,6 +695,8 @@ func (l *levelScean) update() error {
 			doTidalWave(l.board)
 		case minusMinePow:
 			if doMinusMinePow(l.board, l.mouseAnchor, l.clickCount) {
+				l.mineCount--
+				l.miniMap.mineCount = l.mineCount
 				l.powerUps[l.usingPowerUpID].activte()
 				l.usingPowerUp = false
 			}
@@ -789,7 +802,7 @@ func (l *levelScean) update() error {
 		l.quit.update()
 		if l.restart.clicked {
 			// restart the board
-			currentScean = newLevelScean(l.settings, l.powerUpTypes)
+			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn)
 			err := currentScean.load()
 			if err != nil {
 				return err
@@ -804,6 +817,7 @@ func (l *levelScean) update() error {
 			// quit to the map
 			currentScean = &levelSelect{
 				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex: l.jeepIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -837,6 +851,7 @@ func (l *levelScean) update() error {
 			// quit to the map
 			currentScean = &levelSelect{
 				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex: l.jeepIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -890,7 +905,7 @@ func (l *levelScean) update() error {
 
 		if l.restart.clicked {
 			// restart the board
-			currentScean = newLevelScean(l.settings, l.powerUpTypes)
+			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn)
 			err := currentScean.load()
 			if err != nil {
 				return err
@@ -905,6 +920,7 @@ func (l *levelScean) update() error {
 			// quit to the map
 			currentScean = &levelSelect{
 				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex: l.jeepIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -1043,7 +1059,7 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 }
 
 func (l *levelScean) fillBoard(safe *n_tile) {
-	mines := l.settings.mineCount
+	mines := l.mineCount
 	for mines > 0 {
 		i := rand.Intn(len(*l.board))
 		if safe == &(*l.board)[i] || (*l.board)[i].mine {
@@ -1237,9 +1253,6 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 					for _, adj := range tile.adj {
 						if adj != nil {
 							adj.adjCount--
-							adj.flipped = false
-							adj.flip()
-							adj.bounce = false
 						}
 					}
 					done = true
@@ -1247,8 +1260,12 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 				}
 			}
 			for i := 0; i < len(*board); i++ {
-				if (*board)[i].flipped && (*board)[i].adjCount > 0 {
-					(*board)[i].bounce = false
+				(*board)[i].bounce = false
+			}
+			for _, adj := range selTile.adj {
+				if adj != nil && adj.adjCount == 0 && adj.flipped {
+					adj.flipped = false
+					adj.flip()
 				}
 			}
 			return true

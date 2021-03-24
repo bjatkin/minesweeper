@@ -250,6 +250,7 @@ func (l *levelSelect) load() error {
 	}
 
 	l.scrollPt = 80
+	l.jeepGoalIndex = l.jeepIndex
 	l.jeepCoord = l.connectPoints[l.jeepIndex]
 
 	l.levelNumber = 1
@@ -377,6 +378,7 @@ func (l *levelSelect) update() error {
 				l.startMenu.powTwo.powType,
 				l.startMenu.powThree.powType,
 			},
+			l.jeepIndex,
 		)
 
 		err := currentScean.load()
