@@ -59,63 +59,83 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 5
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 5,
 	},
 	// level 6
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 6,
 	},
 	// level 7
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 7,
 	},
 	// level 8
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 8,
 	},
 	// level 9
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 9,
 	},
 	// level 10
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 10,
 	},
 	// level 11
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 11,
 	},
 	// level 12
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 12,
 	},
 	// level 13
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 13,
 	},
 	// level 14
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 25,
-		starTimes: [3]int64{},
+		layout:    newSquareLayout(16, 30),
+		mineCount: 99,
+		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:  5*min + 45*sec,
+		nextLevel: 14,
 	},
 }
 

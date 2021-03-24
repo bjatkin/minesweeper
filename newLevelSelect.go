@@ -70,7 +70,7 @@ func (l *levelSelect) load() error {
 			subImage(ss, 216, 152, 16, 16),
 			subImage(ss, 232, 152, 16, 16),
 		},
-		[]uint{20, 20},
+		[]uint{40, 40},
 		true,
 	)
 	nessie.play()
@@ -270,6 +270,8 @@ func (l *levelSelect) update() error {
 		l.levelShake[i]--
 	}
 	jeep.update()
+	nessie.update()
+	water.update()
 
 	for l.jeepCoord.y-l.scrollPt > 100 {
 		l.scrollPt++
@@ -445,6 +447,17 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 	jop.GeoM.Translate(l.jeepCoord.x-8, l.jeepCoord.y-l.scrollPt-4)
 
 	jeep.draw(screen, jop)
+
+	// draw nessie and the water tiles
+	waterOP := &ebiten.DrawImageOptions{}
+	waterOP.GeoM.Translate(0, 90-l.scrollPt)
+	nessie.draw(screen, waterOP)
+	waterOP.GeoM.Translate(40, -20)
+	water.draw(screen, waterOP)
+	waterOP.GeoM.Translate(-10, 28)
+	water.draw(screen, waterOP)
+	waterOP.GeoM.Translate(-23, 60)
+	water.draw(screen, waterOP)
 
 	// draw the clouds
 	cop := &ebiten.DrawImageOptions{}
