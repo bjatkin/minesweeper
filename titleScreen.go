@@ -53,6 +53,7 @@ func (t *titleScreanScean) update() error {
 			allLevels[0],
 			[3]int{addMinePow, minusMinePow, tidalWavePow},
 			0,
+			1,
 		)
 
 		var err error

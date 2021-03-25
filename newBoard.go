@@ -28,6 +28,7 @@ type levelScean struct {
 	flagCount               int
 	settings                *n_levelData
 	jeepIndexReturn         int
+	levelIndexReturn        int
 	usingPowerUp            bool
 	usingPowerUpID          int
 	powerUps                [3]*powerUp
@@ -41,12 +42,13 @@ type levelScean struct {
 	levelStarCounter *starCounter
 }
 
-func newLevelScean(data *n_levelData, powerUpTypes [3]int, jeepIndexReturn int) *levelScean {
+func newLevelScean(data *n_levelData, powerUpTypes [3]int, jeepIndexReturn int, levelIndexReturn int) *levelScean {
 	ret := &levelScean{
-		settings:        data,
-		powerUpTypes:    powerUpTypes,
-		jeepIndexReturn: jeepIndexReturn,
-		mineCount:       data.mineCount,
+		settings:         data,
+		powerUpTypes:     powerUpTypes,
+		jeepIndexReturn:  jeepIndexReturn,
+		mineCount:        data.mineCount,
+		levelIndexReturn: levelIndexReturn,
 	}
 
 	minX, maxX := 999999, 0
@@ -806,7 +808,7 @@ func (l *levelScean) update() error {
 		l.quit.update()
 		if l.restart.clicked {
 			// restart the board
-			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn)
+			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn, l.levelIndexReturn)
 			err := currentScean.load()
 			if err != nil {
 				return err
@@ -820,8 +822,9 @@ func (l *levelScean) update() error {
 		if l.quit.clicked {
 			// quit to the map
 			currentScean = &levelSelect{
-				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
-				jeepIndex: l.jeepIndexReturn,
+				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex:   l.jeepIndexReturn,
+				levelNumber: l.levelIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -854,8 +857,9 @@ func (l *levelScean) update() error {
 			allLevels[l.settings.nextLevel].unlocked = true
 			// quit to the map
 			currentScean = &levelSelect{
-				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
-				jeepIndex: l.jeepIndexReturn,
+				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex:   l.jeepIndexReturn,
+				levelNumber: l.levelIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -909,7 +913,7 @@ func (l *levelScean) update() error {
 
 		if l.restart.clicked {
 			// restart the board
-			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn)
+			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn, l.levelIndexReturn)
 			err := currentScean.load()
 			if err != nil {
 				return err

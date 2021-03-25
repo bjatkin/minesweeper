@@ -175,7 +175,7 @@ func (l *levelSelect) load() error {
 	// end foreign assets
 
 	l.bestTime = &timer{coord: v2f{194, 1}, timerAccumulator: allLevels[0].bestTime}
-	l.currLevel = allLevels[0]
+	l.currLevel = allLevels[l.levelNumber]
 
 	l.levelPoints = []v2f{
 		{40, 220},  // start
@@ -252,8 +252,6 @@ func (l *levelSelect) load() error {
 	l.scrollPt = 80
 	l.jeepGoalIndex = l.jeepIndex
 	l.jeepCoord = l.connectPoints[l.jeepIndex]
-
-	l.levelNumber = 1
 
 	return nil
 }
@@ -381,6 +379,7 @@ func (l *levelSelect) update() error {
 				l.startMenu.powThree.powType,
 			},
 			l.jeepIndex,
+			l.levelNumber,
 		)
 
 		err := currentScean.load()

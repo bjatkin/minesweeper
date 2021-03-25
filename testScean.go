@@ -32,7 +32,7 @@ type testScean struct {
 func (t *testScean) load() error {
 
 	// a quick hack to get the level assets loaded
-	t.baseBoard = newLevelScean(allLevels[0], [3]int{}, 0)
+	t.baseBoard = newLevelScean(allLevels[0], [3]int{}, 0, 1)
 	t.baseBoard.boardXY.x = 5
 	err := t.baseBoard.load()
 	if err != nil {
