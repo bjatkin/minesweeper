@@ -14,6 +14,8 @@ var (
 	darkGray  = color.RGBA{29, 43, 83, 255}
 	lightGray = color.RGBA{194, 195, 199, 255}
 	white     = color.RGBA{255, 241, 232, 255}
+	red       = color.RGBA{255, 0, 77, 255}
+	purple    = color.RGBA{126, 37, 83, 255}
 )
 
 type miniMap struct {
@@ -24,6 +26,7 @@ type miniMap struct {
 	flippedTiles     [32][32]uint8
 	grassTiles       [32][32]uint8
 	alertTiles       [32][32]uint8
+	flaggedTiles     [32][32]uint8
 	parent           *levelScean
 	mineCount        int
 	flippedTileCount int
@@ -77,6 +80,7 @@ func (mm *miniMap) update() {
 			mm.flippedTiles[x][y] = 0
 			mm.grassTiles[x][y] = 0
 			mm.alertTiles[x][y] = 0
+			mm.flaggedTiles[x][y] = 0
 		}
 	}
 
@@ -88,10 +92,11 @@ func (mm *miniMap) update() {
 		if tile.barkCounter > 0 {
 			mm.alertTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
 		}
-		if !tile.flipped {
+		if !tile.flipped && !tile.flagged {
 			mm.grassTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
 		}
 		if tile.flagged {
+			mm.flaggedTiles[tile.index.x/mm.scale][tile.index.y/mm.scale]++
 			mm.flaggedTileCount++
 		}
 	}
@@ -108,19 +113,18 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 			grass := mm.grassTiles[x][y]
 			flip := mm.flippedTiles[x][y]
 			alert := mm.alertTiles[x][y]
-			total := grass + flip
+			flag := mm.flaggedTiles[x][y]
+			total := grass + flip + flag
 			if int(total) > (mm.scale*mm.scale)/2 {
-				if alert == 0 && grass >= flip {
-					// put a green pixel here
-					miniMap.Set(x, y, green)
-				}
-				if alert == 0 && grass < flip {
-					// put a flipped pixel here
-					miniMap.Set(x, y, gray)
-				}
-				if alert > 0 {
-					// there is an alert here
+				switch {
+				case alert > 0:
 					miniMap.Set(x, y, white)
+				case flag >= grass+flip:
+					miniMap.Set(x, y, red)
+				case flip >= grass+flag:
+					miniMap.Set(x, y, gray)
+				default:
+					miniMap.Set(x, y, green)
 				}
 				continue
 			}
@@ -133,6 +137,9 @@ func (mm *miniMap) draw(screen *ebiten.Image) {
 			}
 			if y > 0 && miniMap.At(x, y-1) == white {
 				miniMap.Set(x, y, lightGray)
+			}
+			if y > 0 && miniMap.At(x, y-1) == red {
+				miniMap.Set(x, y, purple)
 			}
 		}
 	}

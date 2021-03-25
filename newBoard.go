@@ -591,9 +591,11 @@ func (l *levelScean) update() error {
 
 			// this is a virgin tile we are looking to flip
 			if !selTile.flipped {
-				l.duckCharacterUI.state = duckSurprised
-				l.duckCharacterUI.surprised = 30
 				flipCount = selTile.flip()
+				if flipCount > 0 {
+					l.duckCharacterUI.state = duckSurprised
+					l.duckCharacterUI.surprised = 30
+				}
 				if flipCount == 0 {
 					selTile.shake()
 				}
@@ -610,8 +612,6 @@ func (l *levelScean) update() error {
 					}
 				}
 				if flags == selTile.adjCount {
-					l.duckCharacterUI.state = duckSurprised
-					l.duckCharacterUI.surprised = 30
 					for i := 0; i < 8; i++ {
 						if selTile.adj[i] != nil && !selTile.adj[i].flagged {
 							flipCount += selTile.adj[i].flip()
@@ -621,6 +621,10 @@ func (l *levelScean) update() error {
 								l.levelTimer.timer.stop()
 							}
 						}
+					}
+					if flipCount > 0 {
+						l.duckCharacterUI.state = duckSurprised
+						l.duckCharacterUI.surprised = 30
 					}
 				} else {
 					for i := 0; i < 8; i++ {
