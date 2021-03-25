@@ -874,10 +874,10 @@ func (l *levelScean) update() error {
 			l.levelTimer.timer.start()
 			for i := 0; i < len(*l.board); i++ {
 				if (*l.board)[i].mine && (*l.board)[i].flipped {
-					(*l.board)[i].mine = false
 					(*l.board)[i].flagged = true
 					(*l.board)[i].flipped = false
 					n_mineDog.pause()
+					n_mineDog.reset()
 					break
 				}
 			}
@@ -1128,7 +1128,7 @@ func doDogWistle(board *[]n_tile) {
 func doBoardShuffel(board *[]n_tile) {
 	for i := 0; i < len(*board); i++ {
 		tile := &(*board)[i]
-		if tile.mine && rand.Float64() > 0.5 {
+		if tile.mine && !tile.flagged && rand.Float64() > 0.5 {
 			var done bool
 			var safe int
 			for !done {
@@ -1270,6 +1270,12 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 			for i := 0; i < len(*board); i++ {
 				(*board)[i].bounce = false
 			}
+
+			if selTile.adjCount == 0 {
+				selTile.flipped = false
+				selTile.flip()
+			}
+
 			for _, adj := range selTile.adj {
 				if adj != nil && adj.adjCount == 0 && adj.flipped {
 					adj.flipped = false

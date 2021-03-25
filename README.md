@@ -4,3 +4,5 @@
     - make levels with the count down timer possible
     - refactor/ clean up the code so it's easier to work with
     - add a full screen mode
+    - add a save game functionality
+    - shuffel seems to still be a little bit buggy??

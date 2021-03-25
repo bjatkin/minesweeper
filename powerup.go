@@ -45,10 +45,10 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 	nSec := int64(1000000000)
 	switch powType {
 	case addMinePow:
-		pow.coolDown = 120 * nSec
+		pow.coolDown = 30 * nSec
 		pow.icons = addMine
 	case minusMinePow:
-		pow.coolDown = 120 * nSec
+		pow.coolDown = 30 * nSec
 		pow.icons = minusMine
 	case tidalWavePow:
 		pow.coolDown = 180 * nSec
@@ -71,7 +71,7 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 }
 
 func (p *powerUp) wasSelected() bool {
-	if !p.available || !p.ready {
+	if !p.available {
 		return false
 	}
 
@@ -94,16 +94,12 @@ func (p *powerUp) wasSelected() bool {
 		hover = true
 	}
 
-	if hover && mbtnp(ebiten.MouseButtonLeft) {
-	}
-
 	return hover && mbtnp(ebiten.MouseButtonLeft)
 }
 
 func (p *powerUp) activte() {
 	p.ready = false
 	p.countDownTimer = p.timer.time() + p.coolDown
-	// p.countDownTimer = time.Now().UnixNano() + p.coolDown
 	if p.pType == dogABonePow { // this is a single use powerup
 		p.countDownTimer = 9223372036854775807
 	}
@@ -120,7 +116,6 @@ func (p *powerUp) draw(screen *ebiten.Image) {
 
 	var fill int
 	now := p.timer.time()
-	// now := time.Now().UnixNano()
 	if now < p.countDownTimer {
 		fill = int(16 * (float64(p.countDownTimer-now) / float64(p.coolDown)))
 	}
