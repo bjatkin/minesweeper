@@ -28,10 +28,12 @@ var (
 	dogWistle  [2]*ebiten.Image
 	shuffel    [2]*ebiten.Image
 	dogABone   [2]*ebiten.Image
+	locked     [2]*ebiten.Image
 )
 
 const (
-	addMinePow = iota
+	lockedPow = iota
+	addMinePow
 	minusMinePow
 	tidalWavePow
 	scaredyCatPow
@@ -44,6 +46,8 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 	pow := powerUp{pType: powType, boundKey: boundKey, timer: timer, ready: true}
 	nSec := int64(1000000000)
 	switch powType {
+	case lockedPow:
+		pow.icons = locked
 	case addMinePow:
 		pow.coolDown = 30 * nSec
 		pow.icons = addMine
@@ -71,7 +75,7 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 }
 
 func (p *powerUp) wasSelected() bool {
-	if !p.available {
+	if !p.available || p.pType == lockedPow {
 		return false
 	}
 

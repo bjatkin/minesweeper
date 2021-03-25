@@ -51,7 +51,7 @@ func (t *titleScreanScean) update() error {
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
 		currentScean = newLevelScean(
 			allLevels[0],
-			[3]int{addMinePow, minusMinePow, tidalWavePow},
+			[3]int{lockedPow, lockedPow, lockedPow},
 			0,
 			1,
 		)

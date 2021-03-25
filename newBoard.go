@@ -401,6 +401,10 @@ func (l *levelScean) load() error {
 		subImage(ss, 96, 0, 16, 16),
 		subImage(ss, 208, 0, 16, 16),
 	}
+	locked = [2]*ebiten.Image{
+		subImage(ss, 288, 0, 16, 16),
+		subImage(ss, 288, 0, 16, 16),
+	}
 	timeToken = subImage(ss, 0, 352, 16, 16)
 
 	miniMapHud = subImage(ss, 184, 32, 94, 40)

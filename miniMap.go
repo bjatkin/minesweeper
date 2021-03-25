@@ -16,6 +16,7 @@ var (
 	white     = color.RGBA{255, 241, 232, 255}
 	red       = color.RGBA{255, 0, 77, 255}
 	purple    = color.RGBA{126, 37, 83, 255}
+	black     = color.RGBA{0, 0, 0, 255}
 )
 
 type miniMap struct {

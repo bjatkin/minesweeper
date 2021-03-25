@@ -172,6 +172,10 @@ func (l *levelSelect) load() error {
 		subImage(ss, 96, 0, 16, 16),
 		subImage(ss, 208, 0, 16, 16),
 	}
+	locked = [2]*ebiten.Image{
+		subImage(ss, 288, 0, 16, 16),
+		subImage(ss, 288, 0, 16, 16),
+	}
 	// end foreign assets
 
 	l.bestTime = &timer{coord: v2f{194, 1}, timerAccumulator: allLevels[0].bestTime}

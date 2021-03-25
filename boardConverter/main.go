@@ -36,12 +36,12 @@ func main() {
 		return
 	}
 
-	var layout []layoutTile
+	var layout []*layoutTile
 	white := color.RGBA{255, 255, 255, 255}
 	for x := 0; x < width; x++ {
 		for y := 0; y < width; y++ {
-			if colEqual(img.At(x, y), white) {
-				layout = append(layout, layoutTile{index: v2i{x, y}})
+			if !colEqual(img.At(x, y), white) {
+				layout = append(layout, &layoutTile{index: v2i{x, y}, adj: [8]int{-1, -1, -1, -1, -1, -1, -1, -1}})
 			}
 		}
 	}

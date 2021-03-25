@@ -42,8 +42,8 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 3
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
+		layout:    heartBoardLayout,
+		mineCount: 40,
 		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
 		bestTime:  5*min + 45*sec,
 		nextLevel: 3,

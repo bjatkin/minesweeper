@@ -216,6 +216,8 @@ type uiIcon struct {
 func newPowIcon(powType int, coord v2f) *uiIcon {
 	var img *ebiten.Image
 	switch powType {
+	case lockedPow:
+		img = locked[0]
 	case addMinePow:
 		img = addMine[0]
 	case scaredyCatPow:
@@ -237,6 +239,10 @@ func newPowIcon(powType int, coord v2f) *uiIcon {
 func (i *uiIcon) update() {
 	i.hovered = false
 	i.clicked = false
+
+	if i.powType == lockedPow {
+		return
+	}
 
 	m := mCoordsF()
 	if m.x > i.coord.x && m.x < i.coord.x+float64(i.size.x) &&
