@@ -32,14 +32,14 @@ var (
 )
 
 const (
-	lockedPow = iota
-	addMinePow
-	minusMinePow
-	tidalWavePow
-	scaredyCatPow
-	dogWistlePow
-	shuffelPow
-	dogABonePow
+	lockedPow     = iota
+	addMinePow    // select any (flipped tile) next to one or more (grass tiles). If possible, a (dog) will be added under a random (grass tile)
+	minusMinePow  // select any (flipped tile) next to one or more (grass tiles). If possible, a (dog) will be removed from a random (grass tile)
+	tidalWavePow  // convert up to 4 (grass tile) into (water tile). (water tile) will never contain a (dog)
+	scaredyCatPow // select any (grass tile). That tile and it's neighbors will be flipped. Any (dog) will be removed before being flipping.
+	dogWistlePow  // a random (grass tile) will be hilighted, inidicating that (grass tile) is hiding a (dog)
+	shuffelPow    // shuffle all unflagged mines to new (grass tile)
+	dogABonePow   // prevent a game over 1 time
 )
 
 func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {

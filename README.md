@@ -20,7 +20,7 @@
   - [ ] mock a load game ui/ flow
   - [x] mock a new pause menu (with added resume/ continue button)
   - [x] update ui button colors to be easier to read/ scan
-  - [ ] mock a power up unlock screen
+  - [x] mock a power up unlock screen
 
 ## bugs
   - [ ] when you use the ESC key to exit the pause menu it dosen't work if you entered the menu using the mouse
