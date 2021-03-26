@@ -593,6 +593,16 @@ func (l *levelScean) update() error {
 				}
 				l.levelTimer.timer.start()
 				l.filled = true
+
+				if l.settings.frozenTileCount > 0 {
+					freezeTiles(l.board, l.settings.frozenTileCount)
+				}
+				if l.settings.lockedTileCount > 0 {
+					lockTiles(l.board, l.settings.lockedTileCount)
+				}
+				if l.settings.timeTrial {
+					addTimeTiles(l.board, l.settings.timeTrialCount)
+				}
 			}
 
 			// this is a virgin tile we are looking to flip
@@ -1381,10 +1391,10 @@ func lockTiles(board *[]n_tile, tileCount int) {
 func freezeTiles(board *[]n_tile, tileCount int) {
 	count := tileCount
 	for count > 0 {
-		mine := &(*board)[rand.Intn(len(*board))]
-		if !mine.iced {
-			mine.iced = true
-			mine.gfx = n_newAniSprite(
+		tile := &(*board)[rand.Intn(len(*board))]
+		if !tile.iced {
+			tile.iced = true
+			tile.gfx = n_newAniSprite(
 				iceImg[:],
 				[]uint{6, 6, 6},
 				false,
@@ -1397,9 +1407,9 @@ func freezeTiles(board *[]n_tile, tileCount int) {
 func addTimeTiles(board *[]n_tile, tileCount int) {
 	count := tileCount
 	for count > 0 {
-		mine := &(*board)[rand.Intn(len(*board))]
-		if !mine.timeTile {
-			mine.timeTile = true
+		tile := &(*board)[rand.Intn(len(*board))]
+		if !tile.timeTile {
+			tile.timeTile = true
 			count--
 		}
 	}

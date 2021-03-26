@@ -13,6 +13,7 @@ type n_levelData struct {
 	stars            int8
 	starTimes        [3]int64
 	unlocked         bool
+	unlockedPow      int
 	beaten           bool
 	nextLevel        int
 }
@@ -25,28 +26,31 @@ var min = 60 * sec
 var allLevels = [14]*n_levelData{
 	// level 1
 	{
-		layout:    newSquareLayout(8, 8),
-		mineCount: 10,
-		starTimes: [3]int64{60 * sec, 45 * sec, 35 * sec},
-		bestTime:  65 * sec,
-		unlocked:  true,
-		nextLevel: 1,
+		layout:      newSquareLayout(8, 8),
+		mineCount:   10,
+		starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
+		bestTime:    65 * sec,
+		unlocked:    true,
+		unlockedPow: addMinePow,
+		nextLevel:   1,
 	},
 	// level 2
 	{
-		layout:    newSquareLayout(16, 16),
-		mineCount: 40,
-		starTimes: [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
-		bestTime:  3*min + 45*sec,
-		nextLevel: 2,
+		layout:      newSquareLayout(16, 16),
+		mineCount:   40,
+		starTimes:   [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
+		bestTime:    3*min + 45*sec,
+		unlockedPow: minusMinePow,
+		nextLevel:   2,
 	},
 	// level 3
 	{
-		layout:    heartBoardLayout,
-		mineCount: 40,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 3,
+		layout:      heartBoardLayout,
+		mineCount:   40,
+		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:    5*min + 45*sec,
+		unlockedPow: tidalWavePow,
+		nextLevel:   3,
 	},
 	// level 4
 	{
@@ -59,11 +63,12 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 5
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 5,
+		layout:      newSquareLayout(16, 30),
+		mineCount:   99,
+		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		unlockedPow: dogWistlePow,
+		bestTime:    5*min + 45*sec,
+		nextLevel:   5,
 	},
 	// level 6
 	{
@@ -75,11 +80,12 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 7
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 7,
+		layout:      newSquareLayout(16, 30),
+		mineCount:   99,
+		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		unlockedPow: scaredyCatPow,
+		bestTime:    5*min + 45*sec,
+		nextLevel:   7,
 	},
 	// level 8
 	{
@@ -99,11 +105,12 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 10
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 10,
+		layout:      newSquareLayout(16, 30),
+		mineCount:   99,
+		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		unlockedPow: shuffelPow,
+		bestTime:    5*min + 45*sec,
+		nextLevel:   10,
 	},
 	// level 11
 	{
@@ -131,11 +138,12 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 14
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 14,
+		layout:      newSquareLayout(16, 30),
+		mineCount:   99,
+		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:    5*min + 45*sec,
+		unlockedPow: dogABonePow,
+		nextLevel:   14,
 	},
 }
 

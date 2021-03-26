@@ -39,7 +39,7 @@ const (
 	scaredyCatPow // select any (grass tile). That tile and it's neighbors will be flipped. Any (dog) will be removed before being flipping.
 	dogWistlePow  // a random (grass tile) will be hilighted, inidicating that (grass tile) is hiding a (dog)
 	shuffelPow    // shuffle all unflagged mines to new (grass tile)
-	dogABonePow   // prevent a game over 1 time
+	dogABonePow   // prevent a game over once per level
 )
 
 func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
