@@ -481,6 +481,10 @@ func (l *levelScean) load() error {
 
 	l.miniMap = newMiniMap(l, v2f{0, 124}, l.board, l.mineCount)
 	l.levelTimer = newBoardTimer(v2f{})
+	if l.settings.timeTrial {
+		l.levelTimer.timer.countDown = true
+		l.levelTimer.timer.maxTime = l.settings.timeTrialMaxTime
+	}
 	l.levelStarCounter = &starCounter{
 		coord:         v2f{0, 20},
 		timer:         l.levelTimer.timer,
@@ -520,21 +524,29 @@ func (l *levelScean) unload() error {
 
 func (l *levelScean) update() error {
 	// check for a win first thing so we get the lowest possible time
-	var flagged int
-	var flipped int
-	for _, tile := range *l.board {
-		if tile.flagged && tile.mine {
-			flagged++
+	if !l.loose {
+		var flagged int
+		var flipped int
+		for _, tile := range *l.board {
+			if tile.flagged && tile.mine {
+				flagged++
+			}
+			if tile.flipped {
+				flipped++
+			}
 		}
-		if tile.flipped {
-			flipped++
+		if flagged == l.mineCount ||
+			flipped == len(*l.board)-l.mineCount {
+			l.win = true
+			l.levelTimer.timer.stop()
+			l.duckCharacterUI.state = duckCool
 		}
 	}
-	if flagged == l.mineCount ||
-		flipped == len(*l.board)-l.mineCount {
-		l.win = true
+
+	// check if we are out of time
+	if l.levelTimer.timer.overTime() {
+		l.loose = true
 		l.levelTimer.timer.stop()
-		l.duckCharacterUI.state = duckCool
 	}
 
 	// check the power ups
@@ -888,19 +900,21 @@ func (l *levelScean) update() error {
 	}
 
 	// dog a bone game saver
-	for i := 0; i < 3; i++ {
-		if l.loose && l.powerUps[i].ready && l.powerUps[i].pType == dogABonePow {
-			l.loose = false
-			l.powerUps[i].activte()
-			l.duckCharacterUI.state = duckNormal
-			l.levelTimer.timer.start()
-			for i := 0; i < len(*l.board); i++ {
-				if (*l.board)[i].mine && (*l.board)[i].flipped {
-					(*l.board)[i].flagged = true
-					(*l.board)[i].flipped = false
-					n_mineDog.pause()
-					n_mineDog.reset()
-					break
+	if !l.levelTimer.timer.overTime() {
+		for i := 0; i < 3; i++ {
+			if l.loose && l.powerUps[i].ready && l.powerUps[i].pType == dogABonePow {
+				l.loose = false
+				l.powerUps[i].activte()
+				l.duckCharacterUI.state = duckNormal
+				l.levelTimer.timer.start()
+				for i := 0; i < len(*l.board); i++ {
+					if (*l.board)[i].mine && (*l.board)[i].flipped {
+						(*l.board)[i].flagged = true
+						(*l.board)[i].flipped = false
+						n_mineDog.pause()
+						n_mineDog.reset()
+						break
+					}
 				}
 			}
 		}
@@ -941,8 +955,9 @@ func (l *levelScean) update() error {
 		if l.quit.clicked {
 			// quit to the map
 			currentScean = &levelSelect{
-				startMenu: newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
-				jeepIndex: l.jeepIndexReturn,
+				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex:   l.jeepIndexReturn,
+				levelNumber: l.levelIndexReturn,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -1046,11 +1061,12 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		l.bestTime.coord = old
 
 		// steal the level timer
-		old = l.levelTimer.timer.coord
-		l.levelTimer.timer.coord = v2f{65, 57}
-		l.levelTimer.timer.draw(screen)
-		l.levelTimer.timer.coord = old
+		yourTime := timer{}
+		yourTime.coord = v2f{65, 57}
+		yourTime.timerAccumulator = l.levelTimer.timer.timerAccumulator
+		yourTime.draw(screen)
 
+		// draw the continue button
 		l.continueGame.draw(screen)
 
 		// draw your reward stars

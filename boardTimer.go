@@ -13,6 +13,8 @@ type timer struct {
 	timerAccumulator int64
 	timerStart       int64
 	running          bool
+	countDown        bool
+	maxTime          int64
 }
 
 func (t *timer) start() {
@@ -37,10 +39,33 @@ func (t *timer) time() int64 {
 	return total
 }
 
+func (t *timer) overTime() bool {
+	if !t.countDown {
+		return false
+	}
+
+	total := t.timerAccumulator
+	if t.running {
+		total += time.Now().UnixNano() - t.timerStart
+	}
+
+	if total > t.maxTime {
+		return true
+	}
+
+	return false
+}
+
 func (t *timer) draw(screen *ebiten.Image) {
 	total := t.timerAccumulator
 	if t.running {
 		total += time.Now().UnixNano() - t.timerStart
+	}
+	if t.countDown {
+		total = t.maxTime - total
+		if total < 0 {
+			total = 0
+		}
 	}
 
 	// nano seconds to ms
