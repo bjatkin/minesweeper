@@ -34,21 +34,23 @@ var (
 	goldStar      *ebiten.Image
 )
 
+var unlockedPowers = [7]*uiIcon{
+	{coord: v2f{0, 17}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 35}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 53}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 71}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 89}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 107}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+	{coord: v2f{0, 125}, size: v2i{16, 16}, img: locked[0], powType: lockedPow},
+}
+
 func newLevelStartMenu(pType [3]int) *levelStartMenu {
 	ret := &levelStartMenu{
 		powOne:   newPowIcon(pType[0], v2f{88, 71}),
 		powTwo:   newPowIcon(pType[1], v2f{109, 71}),
 		powThree: newPowIcon(pType[2], v2f{130, 71}),
 		startBtn: newUIButton(v2f{84, 126}, startBtn),
-		powIcons: [7]*uiIcon{
-			{coord: v2f{0, 17}, size: v2i{16, 16}, img: addMine[0], powType: addMinePow},
-			{coord: v2f{0, 35}, size: v2i{16, 16}, img: scaredyCat[0], powType: scaredyCatPow},
-			{coord: v2f{0, 53}, size: v2i{16, 16}, img: tidalWave[0], powType: tidalWavePow},
-			{coord: v2f{0, 71}, size: v2i{16, 16}, img: minusMine[0], powType: minusMinePow},
-			{coord: v2f{0, 89}, size: v2i{16, 16}, img: dogWistle[0], powType: dogWistlePow},
-			{coord: v2f{0, 107}, size: v2i{16, 16}, img: shuffel[0], powType: shuffelPow},
-			{coord: v2f{0, 125}, size: v2i{16, 16}, img: dogABone[0], powType: dogABonePow},
-		},
+		powIcons: unlockedPowers,
 	}
 
 	return ret

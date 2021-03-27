@@ -19,6 +19,8 @@ type levelScean struct {
 	filled                  bool
 	win, loose              bool
 	paused                  bool
+	doUnPause               bool
+	pauseCoolDown           int
 	bestTime                *timer
 	quit                    *uiButton
 	restart                 *uiButton
@@ -411,7 +413,7 @@ func (l *levelScean) load() error {
 	starCountHud = subImage(ss, 80, 48, 40, 11)
 	starCountHudBG = subImage(ss, 80, 59, 40, 11)
 	star = subImage(ss, 136, 48, 16, 16)
-	pauseMenu = subImage(ss, 184, 72, 64, 72)
+	pauseMenu = subImage(ss, 184, 72, 64, 80)
 
 	restartBtn = [3]*ebiten.Image{
 		subImage(ss, 248, 104, 56, 16), // normal
@@ -508,10 +510,10 @@ func (l *levelScean) load() error {
 	scrollArrowLeft = subImage(ss, 16, 352, 8, 8)
 	scrollArrowUp = subImage(ss, 24, 352, 8, 8)
 
-	l.restart = newUIButton(v2f{82, 45}, restartBtn)
-	l.quit = newUIButton(v2f{82, 65}, quitBtn)
-	l.continueGame = newUIButton(v2f{87, 72}, continueBtn)
-	l.bestTime = &timer{timerAccumulator: l.settings.bestTime, coord: v2f{92, 96}}
+	l.restart = newUIButton(v2f{82, 63}, restartBtn)
+	l.quit = newUIButton(v2f{82, 81}, quitBtn)
+	l.continueGame = newUIButton(v2f{82, 45}, continueBtn)
+	l.bestTime = &timer{timerAccumulator: l.settings.bestTime, coord: v2f{92, 111}}
 
 	return nil
 }
@@ -526,8 +528,12 @@ func (l *levelScean) update() error {
 	// check for a win first thing so we get the lowest possible time
 	if !l.loose {
 		var flagged int
+		var allFlagged int
 		var flipped int
 		for _, tile := range *l.board {
+			if tile.flagged {
+				allFlagged++
+			}
 			if tile.flagged && tile.mine {
 				flagged++
 			}
@@ -535,7 +541,7 @@ func (l *levelScean) update() error {
 				flipped++
 			}
 		}
-		if flagged == l.mineCount ||
+		if (flagged == allFlagged && flagged == l.mineCount) ||
 			flipped == len(*l.board)-l.mineCount {
 			l.win = true
 			l.levelTimer.timer.stop()
@@ -604,6 +610,7 @@ func (l *levelScean) update() error {
 					l.powerUps[i].available = true
 				}
 				l.levelTimer.timer.start()
+				l.levelTimer.pauseBtn.disabled = false
 				l.filled = true
 
 				if l.settings.frozenTileCount > 0 {
@@ -769,8 +776,15 @@ func (l *levelScean) update() error {
 
 	// pan the board around
 	cursorHold = false
+	if mbtnr(ebiten.MouseButtonLeft) {
+		l.clickCount = 0
+	}
+
 	if mbtn(ebiten.MouseButtonLeft) {
 		l.clickCount++
+	}
+
+	if mbtn(ebiten.MouseButtonLeft) && l.mouseAnchor.dist(mCoordsF()) > 2 && l.clickCount > 2 {
 		cursorHold = true
 	}
 
@@ -791,16 +805,18 @@ func (l *levelScean) update() error {
 		l.boardDXY = v2f{}
 	}
 
+	l.pauseCoolDown--
 	// update the level timer + some other assets
 	if !l.win {
 		l.levelTimer.update()
-		if l.levelTimer.play.clicked {
-			l.paused = false
+		if l.levelTimer.playBtn.wasClicked() {
+			l.doUnPause = true
 		}
-		if l.levelTimer.pause.clicked {
+		if l.levelTimer.pauseBtn.clicked {
 			l.paused = true
+			l.levelTimer.timer.stop()
 		}
-		if btnp(ebiten.KeyEscape) {
+		if btnp(ebiten.KeyEscape) && l.filled {
 			if l.usingPowerUp {
 				l.usingPowerUp = false
 				for i := 0; i < len(*l.board); i++ {
@@ -811,8 +827,7 @@ func (l *levelScean) update() error {
 					l.paused = true
 					l.levelTimer.timer.stop()
 				} else {
-					l.paused = false
-					l.levelTimer.timer.start()
+					l.doUnPause = true
 				}
 			}
 		}
@@ -832,7 +847,13 @@ func (l *levelScean) update() error {
 	if l.paused {
 		l.restart.update()
 		l.quit.update()
-		if l.restart.clicked {
+		l.continueGame.update()
+
+		if l.continueGame.wasClicked() {
+			l.doUnPause = true
+		}
+
+		if l.restart.wasClicked() {
 			// restart the board
 			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn, l.levelIndexReturn)
 			err := currentScean.load()
@@ -845,7 +866,7 @@ func (l *levelScean) update() error {
 				return err
 			}
 		}
-		if l.quit.clicked {
+		if l.quit.wasClicked() {
 			// quit to the map
 			currentScean = &levelSelect{
 				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
@@ -878,14 +899,24 @@ func (l *levelScean) update() error {
 		l.powerUps[2].available = false
 		l.continueGame.update()
 
-		if btnp(ebiten.KeyEnter) || l.continueGame.clicked {
+		if btnp(ebiten.KeyEnter) || l.continueGame.wasClicked() {
 			l.settings.beaten = true
 			allLevels[l.settings.nextLevel].unlocked = true
+
+			// unlock a power up
+			if l.settings.unlockedPow != 0 {
+				ulock := unlockedPowers[l.settings.unlockedPow]
+				unlockedPowers[l.settings.unlockedPow] = newPowIcon(l.settings.unlockedPow, ulock.coord)
+			}
+
 			// quit to the map
 			currentScean = &levelSelect{
-				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
-				jeepIndex:   l.jeepIndexReturn,
-				levelNumber: l.levelIndexReturn,
+				startMenu:     newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex:     l.jeepIndexReturn,
+				levelNumber:   l.levelIndexReturn,
+				showUnlockPow: true,
+				unlockPow:     l.settings.unlockedPow,
+				unlockSlot:    l.settings.unlockSlot,
 			}
 			err := currentScean.load()
 			if err != nil {
@@ -896,6 +927,7 @@ func (l *levelScean) update() error {
 			if err != nil {
 				return err
 			}
+
 		}
 	}
 
@@ -939,7 +971,7 @@ func (l *levelScean) update() error {
 		l.restart.update()
 		l.quit.update()
 
-		if l.restart.clicked {
+		if l.restart.wasClicked() {
 			// restart the board
 			currentScean = newLevelScean(l.settings, l.powerUpTypes, l.jeepIndexReturn, l.levelIndexReturn)
 			err := currentScean.load()
@@ -952,7 +984,7 @@ func (l *levelScean) update() error {
 				return err
 			}
 		}
-		if l.quit.clicked {
+		if l.quit.wasClicked() {
 			// quit to the map
 			currentScean = &levelSelect{
 				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
@@ -969,6 +1001,20 @@ func (l *levelScean) update() error {
 				return err
 			}
 		}
+	}
+
+	// unpause the game
+	if l.doUnPause && !mbtn(ebiten.MouseButtonLeft) && !l.levelTimer.playBtn.clicked {
+		l.paused = false
+		l.doUnPause = false
+		l.levelTimer.timer.start()
+		l.levelTimer.playBtn.disabled = true
+		l.levelTimer.pauseBtn.disabled = false
+	}
+
+	if l.paused {
+		l.levelTimer.playBtn.disabled = false
+		l.levelTimer.pauseBtn.disabled = true
 	}
 
 	return nil
@@ -998,6 +1044,7 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		pop := &ebiten.DrawImageOptions{}
 		pop.GeoM.Translate(80, 42)
 		screen.DrawImage(pauseMenu, pop)
+		l.continueGame.draw(screen)
 		l.restart.draw(screen)
 		l.quit.draw(screen)
 		l.bestTime.draw(screen)
@@ -1066,7 +1113,8 @@ func (l *levelScean) draw(screen *ebiten.Image) {
 		yourTime.timerAccumulator = l.levelTimer.timer.timerAccumulator
 		yourTime.draw(screen)
 
-		// draw the continue button
+		// steal the continue the continue button
+		l.continueGame.coord = v2f{92, 72}
 		l.continueGame.draw(screen)
 
 		// draw your reward stars

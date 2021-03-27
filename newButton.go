@@ -10,8 +10,10 @@ type uiButton struct {
 	main         *ebiten.Image
 	hover        *ebiten.Image
 	click        *ebiten.Image
+	disabled     bool
 	hovered      bool
 	clicked      bool
+	clickDone    bool
 	clickCounter int
 }
 
@@ -29,7 +31,14 @@ func newUIButton(coord v2f, states [3]*ebiten.Image) *uiButton {
 }
 
 func (b *uiButton) wasClicked() bool {
-	return mbtnp(ebiten.MouseButtonLeft) && b.clicked
+	if b.disabled {
+		return false
+	}
+	if b.clickDone {
+		b.clickDone = false
+		return true
+	}
+	return false
 }
 
 func (btn *uiButton) update() {
@@ -42,7 +51,7 @@ func (btn *uiButton) update() {
 		btn.hovered = true
 	}
 
-	if btn.hovered && mbtn(ebiten.MouseButtonLeft) {
+	if !btn.disabled && btn.hovered && mbtnr(ebiten.MouseButtonLeft) {
 		btn.clicked = true
 	}
 
@@ -53,6 +62,7 @@ func (btn *uiButton) update() {
 	if btn.clickCounter > 15 {
 		btn.clicked = false
 		btn.clickCounter = 0
+		btn.clickDone = true
 	}
 }
 

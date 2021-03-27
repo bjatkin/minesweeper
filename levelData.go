@@ -14,6 +14,7 @@ type n_levelData struct {
 	starTimes        [3]int64
 	unlocked         bool
 	unlockedPow      int
+	unlockSlot       int
 	beaten           bool
 	nextLevel        int
 }
@@ -31,7 +32,8 @@ var allLevels = [14]*n_levelData{
 		starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
 		bestTime:    65 * sec,
 		unlocked:    true,
-		unlockedPow: addMinePow,
+		unlockedPow: minusMinePow,
+		unlockSlot:  1,
 		nextLevel:   1,
 	},
 	// level 2
@@ -40,7 +42,7 @@ var allLevels = [14]*n_levelData{
 		mineCount:   40,
 		starTimes:   [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
 		bestTime:    3*min + 45*sec,
-		unlockedPow: minusMinePow,
+		unlockedPow: tidalWavePow,
 		nextLevel:   2,
 	},
 	// level 3
@@ -49,7 +51,7 @@ var allLevels = [14]*n_levelData{
 		mineCount:   40,
 		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
 		bestTime:    5*min + 45*sec,
-		unlockedPow: tidalWavePow,
+		unlockedPow: addMinePow,
 		nextLevel:   3,
 	},
 	// level 4
@@ -59,6 +61,7 @@ var allLevels = [14]*n_levelData{
 		frozenTileCount: 50,
 		starTimes:       [3]int64{3*min + 35*sec, 3*min + 15*sec, 3 * min},
 		bestTime:        3*min + 10*sec,
+		unlockSlot:      2,
 		nextLevel:       4,
 	},
 	// level 5
@@ -89,11 +92,12 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 8
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 8,
+		layout:     newSquareLayout(16, 30),
+		mineCount:  99,
+		starTimes:  [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		bestTime:   5*min + 45*sec,
+		unlockSlot: 3,
+		nextLevel:  8,
 	},
 	// level 9
 	{

@@ -20,6 +20,9 @@ type levelSelect struct {
 	startMenu     *levelStartMenu
 	levelNumber   int
 	bestTime      *timer
+	showUnlockPow bool
+	unlockPow     int
+	unlockSlot    int
 }
 
 // level select assets
@@ -178,6 +181,13 @@ func (l *levelSelect) load() error {
 	}
 	// end foreign assets
 
+	// make sure unlocked powers are all loaded
+	for i := 0; i < len(unlockedPowers); i++ {
+		if unlockedPowers[i].img == nil {
+			unlockedPowers[i].img = locked[0]
+		}
+	}
+
 	l.bestTime = &timer{coord: v2f{194, 1}, timerAccumulator: allLevels[0].bestTime}
 	l.currLevel = allLevels[l.levelNumber]
 
@@ -256,6 +266,16 @@ func (l *levelSelect) load() error {
 	l.scrollPt = 80
 	l.jeepGoalIndex = l.jeepIndex
 	l.jeepCoord = l.connectPoints[l.jeepIndex]
+
+	// unlock a power slot if nessisary
+	switch {
+	case l.unlockSlot == 1 && l.startMenu.powOne.powType == lockedPow:
+		l.startMenu.powOne = newPowIcon(minusMinePow, l.startMenu.powOne.coord)
+	case l.unlockSlot == 2 && l.startMenu.powTwo.powType == lockedPow:
+		l.startMenu.powTwo = newPowIcon(minusMinePow, l.startMenu.powTwo.coord)
+	case l.unlockSlot == 3 && l.startMenu.powThree.powType == lockedPow:
+		l.startMenu.powThree = newPowIcon(minusMinePow, l.startMenu.powThree.coord)
+	}
 
 	return nil
 }
@@ -374,7 +394,7 @@ func (l *levelSelect) update() error {
 		l.startMenu.update()
 	}
 
-	if l.startMenu.startBtn.clicked {
+	if l.startMenu.startBtn.wasClicked() {
 		currentScean = newLevelScean(
 			l.startMenu.levelData,
 			[3]int{

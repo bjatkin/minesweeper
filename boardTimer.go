@@ -118,36 +118,36 @@ func (t *timer) draw(screen *ebiten.Image) {
 }
 
 type boardTimer struct {
-	coord v2f
-	timer *timer
-	play  *uiButton
-	pause *uiButton
+	coord    v2f
+	timer    *timer
+	playBtn  *uiButton
+	pauseBtn *uiButton
 }
 
 func newBoardTimer(coord v2f) *boardTimer {
-	return &boardTimer{
-		coord: coord,
-		timer: &timer{},
-		play:  newUIButton(coord, timerPlayBtn),
-		pause: newUIButton(coord, timerPauseBtn),
+	ret := &boardTimer{
+		coord:    coord,
+		timer:    &timer{},
+		playBtn:  newUIButton(coord, timerPlayBtn),
+		pauseBtn: newUIButton(coord, timerPauseBtn),
 	}
+	ret.pauseBtn.disabled = true
+	ret.playBtn.disabled = true
+
+	return ret
+}
+
+func (b *boardTimer) pause() {
+	b.timer.stop()
+}
+
+func (b *boardTimer) unpause() {
+	b.timer.start()
 }
 
 func (b *boardTimer) update() {
-	if b.timer.running {
-		b.pause.update()
-		if b.pause.wasClicked() {
-			b.timer.stop()
-		}
-		return
-	}
-
-	if !b.timer.running {
-		b.play.update()
-		if b.play.wasClicked() {
-			b.timer.start()
-		}
-	}
+	b.pauseBtn.update()
+	b.playBtn.update()
 }
 
 func (b *boardTimer) draw(screen *ebiten.Image) {
@@ -156,9 +156,9 @@ func (b *boardTimer) draw(screen *ebiten.Image) {
 	screen.DrawImage(timerBG, op)
 
 	if b.timer.running {
-		b.pause.draw(screen)
+		b.pauseBtn.draw(screen)
 	} else {
-		b.play.draw(screen)
+		b.playBtn.draw(screen)
 	}
 
 	b.timer.coord = b.coord

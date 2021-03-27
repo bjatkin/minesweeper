@@ -5,11 +5,10 @@
   - [ ] add a full screen mode (look into the layout options that ebiten provides)
   - [ ] add a save game functionality
   - [ ] add some load game functionality
-  - [ ] Add a continue button to the pause menu (the play pause buttons in the corner are too small)
-  - [ ] make power up's unlockable
   - [ ] limit the number of a specific power up that you can bring into a map
-  - [ ] lock powerups on the menu unlock screen if they haven't been unlocked yet
-  - [ ] hide powerups on the menu screen if they haven't been unlocked yet
+  - [x] make power up's unlockable
+  - [x] hide powerups on the menu screen if they haven't been unlocked yet
+  - [x] Add a continue button to the pause menu (the play pause buttons in the corner are too small)
   - [x] test non-square board layouts (start with the heart)
   - [x] create a converter from png images to board layouts
   - [x] make levels with the count down timer possible
@@ -23,6 +22,7 @@
   - [x] mock a power up unlock screen
 
 ## bugs
-  - [ ] when you use the ESC key to exit the pause menu it dosen't work if you entered the menu using the mouse
-  - [ ] cat / tidal wave power ups are not getting re-uped after rechargeing?? (verify this)
-  - [ ] shuffel seems to still be a little bit buggy?? (verify this)
+  - [ ] powerups look fully charged even when they are not. The last row of pixels should not be drawn in until the power up is 100% charged or it feels bad
+  - [x] when you use the ESC key to exit the pause menu it dosen't work if you entered the menu using the mouse
+  - [x] cat / tidal wave power ups are not getting re-uped after rechargeing?? (verify this)
+  - [x] shuffel seems to still be a little bit buggy?? (verify this)
