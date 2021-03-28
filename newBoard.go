@@ -8,34 +8,35 @@ import (
 )
 
 type levelScean struct {
-	boardXY                 v2f
-	boardDXY                v2f
-	boardWidth, boardHeight int
-	mouseAnchor             v2f
-	clickCount              int
-	panning                 bool
-	mouseXY                 v2i
-	board                   *[]n_tile
-	filled                  bool
-	win, loose              bool
-	paused                  bool
-	doUnPause               bool
-	pauseCoolDown           int
-	bestTime                *timer
-	quit                    *uiButton
-	restart                 *uiButton
-	continueGame            *uiButton
-	timerAccumulator        int64
-	start                   int64
-	flagCount               int
-	settings                *n_levelData
-	jeepIndexReturn         int
-	levelIndexReturn        int
-	usingPowerUp            bool
-	usingPowerUpID          int
-	powerUps                [3]*powerUp
-	powerUpTypes            [3]int
-	powSelDone              bool
+	boardXY                    v2f
+	boardDXY                   v2f
+	boardWidth, boardHeight    int
+	mouseAnchor                v2f
+	clickCount                 int
+	panning                    bool
+	mouseXY                    v2i
+	board                      *[]n_tile
+	filled                     bool
+	win, loose                 bool
+	winCoolDown, looseCoolDown int
+	paused                     bool
+	doUnPause                  bool
+	pauseCoolDown              int
+	bestTime                   *timer
+	quit                       *uiButton
+	restart                    *uiButton
+	continueGame               *uiButton
+	timerAccumulator           int64
+	start                      int64
+	flagCount                  int
+	settings                   *n_levelData
+	jeepIndexReturn            int
+	levelIndexReturn           int
+	usingPowerUp               bool
+	usingPowerUpID             int
+	powerUps                   [3]*powerUp
+	powerUpTypes               [3]int
+	powSelDone                 bool
 
 	mineCount        int
 	miniMap          *miniMap
@@ -910,14 +911,19 @@ func (l *levelScean) update() error {
 			}
 
 			// quit to the map
-			currentScean = &levelSelect{
-				startMenu:     newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
-				jeepIndex:     l.jeepIndexReturn,
-				levelNumber:   l.levelIndexReturn,
-				showUnlockPow: true,
-				unlockPow:     l.settings.unlockedPow,
-				unlockSlot:    l.settings.unlockSlot,
+			lvlMap := &levelSelect{
+				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
+				jeepIndex:   l.jeepIndexReturn,
+				levelNumber: l.levelIndexReturn,
 			}
+
+			if l.levelStarCounter.starCount > 0 {
+				lvlMap.showUnlockPow = true
+				lvlMap.unlockPow = l.settings.unlockedPow
+				lvlMap.unlockSlot = l.settings.unlockSlot
+			}
+
+			currentScean = lvlMap
 			err := currentScean.load()
 			if err != nil {
 				return err

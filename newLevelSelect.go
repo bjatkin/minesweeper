@@ -39,6 +39,9 @@ var (
 	lvlConnect              *ebiten.Image
 	mapUIHeader             *ebiten.Image
 	redStar                 *ebiten.Image
+	powerUpUnlock           *ebiten.Image
+	powerUpUnlockPow        *ebiten.Image
+	powerUpUnlockSlot       *ebiten.Image
 )
 
 func (l *levelSelect) load() error {
@@ -116,6 +119,10 @@ func (l *levelSelect) load() error {
 	powSelMenu = subImage(ss, 152, 32, 30, 132)
 	redStar = subImage(ss, 208, 16, 8, 8)
 	goldStar = subImage(ss, 200, 16, 8, 8)
+
+	powerUpUnlock = subImage(ss, 432, 32, 248, 109)
+	powerUpUnlockSlot = subImage(ss, 480, 0, 91, 22)
+	powerUpUnlockPow = subImage(ss, 576, 0, 91, 22)
 
 	// These assets are defined in the newBoard file but we need it here as well
 	numberBig = [12]*ebiten.Image{
@@ -544,4 +551,15 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 		sop.GeoM.Translate(7, 0)
 		screen.DrawImage(redStar, sop)
 	}
+
+	powOp := &ebiten.DrawImageOptions{}
+	powOp.GeoM.Translate(-1, 25)
+	screen.DrawImage(powerUpUnlock, powOp)
+
+	powOp.GeoM.Translate(75, 18)
+	screen.DrawImage(powerUpUnlockPow, powOp)
+	// screen.DrawImage(powerUpUnlockSlot, powOp)
+
+	powOp.GeoM.Translate(7, 3)
+	screen.DrawImage(addMine[0], powOp)
 }
