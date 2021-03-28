@@ -297,7 +297,7 @@ func (l *levelSelect) load() error {
 		l.startMenu.powThree = newPowIcon(minusMinePow, l.startMenu.powThree.coord)
 	}
 
-	l.unlockPowSplash = &powUnlock{slot: true}
+	l.unlockPowSplash = &powUnlock{powerUpType: addMinePow}
 
 	return nil
 }

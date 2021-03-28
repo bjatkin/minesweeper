@@ -6,6 +6,7 @@
   - [ ] add a save game functionality
   - [ ] add some load game functionality
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [ ] play an animation showing when you unlock powerups
   - [x] make power up's unlockable
   - [x] hide powerups on the menu screen if they haven't been unlocked yet
   - [x] Add a continue button to the pause menu (the play pause buttons in the corner are too small)

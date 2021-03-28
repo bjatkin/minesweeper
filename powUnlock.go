@@ -65,13 +65,13 @@ func (pow *powUnlock) draw(screen *ebiten.Image) {
 	if pow.scrollIn > 1 && pow.scrollOut == 0 {
 		if pow.slot {
 			screen.DrawImage(powerUpUnlockSlot, powOp)
-			drawDesc(screen, v2f{5, 75}, desc[0])
+			drawDesc(screen, desc[0])
 		} else {
 			screen.DrawImage(powerUpUnlockPow, powOp)
 			powOp.GeoM.Translate(7, 3)
 			screen.DrawImage(icons[pow.powerUpType], powOp)
 			powOp.GeoM.Translate(-7, -3)
-			drawDesc(screen, v2f{5, 75}, desc[pow.powerUpType])
+			drawDesc(screen, desc[pow.powerUpType])
 		}
 	}
 
@@ -83,7 +83,7 @@ func (pow *powUnlock) draw(screen *ebiten.Image) {
 	screen.DrawImage(exclaim, powOp)
 }
 
-func drawDesc(screen *ebiten.Image, coord v2f, desc string) {
+func drawDesc(screen *ebiten.Image, desc string) {
 	lines := strings.Split(desc, "\n")
 	for i, line := range lines {
 		flipped := []v2i{}
@@ -95,53 +95,54 @@ func drawDesc(screen *ebiten.Image, coord v2f, desc string) {
 			done = true
 			f := strings.Index(line, "{flipped}")
 			if f > 0 {
-				flipped = append(flipped, v2i{pxlLen(mainFont, line[:f]), 73 + i*16})
+				flipped = append(flipped, v2i{pxlLen(mainFont, line[:f]) - 6, 73 + i*16})
 				done = false
 			}
 			line = strings.Replace(line, "{flipped}", "  ", 1)
 
 			g := strings.Index(line, "{grass}")
 			if g > 0 {
-				grass = append(grass, v2i{pxlLen(mainFont, line[:g]), 73 + i*16})
+				grass = append(grass, v2i{pxlLen(mainFont, line[:g]) - 6, 73 + i*16})
 				done = false
 			}
 			line = strings.Replace(line, "{grass}", "  ", 1)
 
 			w := strings.Index(line, "{water}")
 			if w > 0 {
-				water = append(water, v2i{pxlLen(mainFont, line[:w]), 73 + i*16})
+				water = append(water, v2i{pxlLen(mainFont, line[:w]) - 6, 73 + i*16})
 			}
 			line = strings.Replace(line, "{water}", "  ", 1)
 
 			d := strings.Index(line, "{dog}")
 			if d > 0 {
-				dog = append(dog, v2i{pxlLen(mainFont, line[:d]), 73 + i*16})
+				dog = append(dog, v2i{pxlLen(mainFont, line[:d]) - 6, 73 + i*16})
 			}
 			line = strings.Replace(line, "{dog}", "  ", 1)
 		}
 
+		x := (240 - float64(pxlLen(mainFont, line))) / 2
 		tileOp := &ebiten.DrawImageOptions{}
 		for _, flip := range flipped {
 			tileOp.GeoM.Reset()
-			tileOp.GeoM.Translate(flip.Float64().x, flip.Float64().y)
+			tileOp.GeoM.Translate(flip.Float64().x+x, flip.Float64().y)
 			screen.DrawImage(flipIcon, tileOp)
 		}
 		for _, g := range grass {
 			tileOp.GeoM.Reset()
-			tileOp.GeoM.Translate(g.Float64().x, g.Float64().y)
+			tileOp.GeoM.Translate(g.Float64().x+x, g.Float64().y)
 			screen.DrawImage(grassIcon, tileOp)
 		}
 		for _, w := range water {
 			tileOp.GeoM.Reset()
-			tileOp.GeoM.Translate(w.Float64().x, w.Float64().y)
+			tileOp.GeoM.Translate(w.Float64().x+x, w.Float64().y)
 			screen.DrawImage(waterIcon, tileOp)
 		}
 		for _, d := range dog {
 			tileOp.GeoM.Reset()
-			tileOp.GeoM.Translate(d.Float64().x, d.Float64().y)
+			tileOp.GeoM.Translate(d.Float64().x+x, d.Float64().y)
 			screen.DrawImage(dogIcon, tileOp)
 		}
 
-		pxlPrint(screen, mainFont, coord.x, coord.y+float64(i*16), line)
+		pxlPrint(screen, mainFont, x, 75+float64(i*16), line)
 	}
 }
