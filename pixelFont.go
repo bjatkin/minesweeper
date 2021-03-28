@@ -85,3 +85,28 @@ func pxlPrint(dest *ebiten.Image, font *pxlFont, x, y float64, str string) (*ebi
 
 	return dest, nil
 }
+
+func pxlLen(font *pxlFont, str string) int {
+	var len int
+	for _, r := range str {
+		if r == ' ' {
+			len += int(font.sprWidth)
+			continue
+		}
+		i := -1
+		line := 0
+		for _, ref := range font.stringRef {
+			i = strings.IndexRune(ref, r)
+			if i >= 0 {
+				break
+			}
+			line++
+		}
+		if i == -1 {
+			len += int(font.sprWidth)
+		}
+		len += int(font.fontwidth[line][i])
+	}
+
+	return len
+}

@@ -7,22 +7,24 @@ import (
 )
 
 type levelSelect struct {
-	scrollPt      float64
-	jeepCoord     v2f
-	jeepIndex     int
-	jeepFlip      bool
-	jeepGoalIndex int
-	levelPoints   []v2f
-	connectPoints []v2f
-	levelShake    []int
-	selectLevel   bool
-	currLevel     *n_levelData
-	startMenu     *levelStartMenu
-	levelNumber   int
-	bestTime      *timer
-	showUnlockPow bool
-	unlockPow     int
-	unlockSlot    int
+	scrollPt         float64
+	jeepCoord        v2f
+	jeepIndex        int
+	jeepFlip         bool
+	jeepGoalIndex    int
+	levelPoints      []v2f
+	connectPoints    []v2f
+	levelShake       []int
+	selectLevel      bool
+	currLevel        *n_levelData
+	startMenu        *levelStartMenu
+	levelNumber      int
+	bestTime         *timer
+	showUnlockPow    bool
+	unlockPow        int
+	unlockSlot       int
+	unlockPowSplash  *powUnlock
+	unlockSlotSplash *powUnlock
 }
 
 // level select assets
@@ -42,6 +44,10 @@ var (
 	powerUpUnlock           *ebiten.Image
 	powerUpUnlockPow        *ebiten.Image
 	powerUpUnlockSlot       *ebiten.Image
+	dogIcon                 *ebiten.Image
+	grassIcon               *ebiten.Image
+	flipIcon                *ebiten.Image
+	waterIcon               *ebiten.Image
 )
 
 func (l *levelSelect) load() error {
@@ -123,6 +129,13 @@ func (l *levelSelect) load() error {
 	powerUpUnlock = subImage(ss, 432, 32, 248, 109)
 	powerUpUnlockSlot = subImage(ss, 480, 0, 91, 22)
 	powerUpUnlockPow = subImage(ss, 576, 0, 91, 22)
+
+	exclaim = subImage(ss, 368, 120, 29, 34)
+
+	dogIcon = subImage(ss, 128, 224, 16, 16)
+	grassIcon = subImage(ss, 0, 192, 16, 16)
+	flipIcon = subImage(ss, 96, 192, 16, 16)
+	waterIcon = subImage(ss, 0, 256, 16, 16)
 
 	// These assets are defined in the newBoard file but we need it here as well
 	numberBig = [12]*ebiten.Image{
@@ -284,6 +297,8 @@ func (l *levelSelect) load() error {
 		l.startMenu.powThree = newPowIcon(minusMinePow, l.startMenu.powThree.coord)
 	}
 
+	l.unlockPowSplash = &powUnlock{slot: true}
+
 	return nil
 }
 
@@ -295,6 +310,8 @@ func (l *levelSelect) unload() error {
 }
 
 func (l *levelSelect) update() error {
+	l.unlockPowSplash.update()
+
 	for i := 0; i < len(l.levelShake); i++ {
 		l.levelShake[i]--
 	}
@@ -552,14 +569,5 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 		screen.DrawImage(redStar, sop)
 	}
 
-	powOp := &ebiten.DrawImageOptions{}
-	powOp.GeoM.Translate(-1, 25)
-	screen.DrawImage(powerUpUnlock, powOp)
-
-	powOp.GeoM.Translate(75, 18)
-	screen.DrawImage(powerUpUnlockPow, powOp)
-	// screen.DrawImage(powerUpUnlockSlot, powOp)
-
-	powOp.GeoM.Translate(7, 3)
-	screen.DrawImage(addMine[0], powOp)
+	l.unlockPowSplash.draw(screen)
 }

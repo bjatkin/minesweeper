@@ -429,9 +429,9 @@ func (l *levelScean) load() error {
 	}
 
 	continueBtn = [3]*ebiten.Image{
-		subImage(ss, 304, 152, 66, 16), // normal
-		subImage(ss, 304, 136, 66, 16), // hover
-		subImage(ss, 304, 120, 66, 16), // clicked
+		subImage(ss, 304, 152, 56, 16), // normal
+		subImage(ss, 304, 136, 56, 16), // hover
+		subImage(ss, 304, 120, 56, 16), // clicked
 	}
 
 	timerBG = subImage(ss, 96, 72, 49, 16)

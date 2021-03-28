@@ -52,3 +52,10 @@ func toV2f(pt image.Point) v2f {
 func toV2i(pt image.Point) v2i {
 	return v2i{pt.X, pt.Y}
 }
+
+func lerp(a, b, t float64) float64 {
+	if t > 1 {
+		t = 1
+	}
+	return a + t*(b-a)
+}
