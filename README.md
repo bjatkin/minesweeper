@@ -23,8 +23,9 @@
   - [x] mock a power up unlock screen
 
 ## bugs
+  - [ ] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
   - [ ] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
-  - [ ] powerups look fully charged even when they are not. The last row of pixels should not be drawn in until the power up is 100% charged or it feels bad
+  - [x] powerups look fully charged even when they are not. The last row of pixels should not be drawn in until the power up is 100% charged or it feels bad
   - [x] when you use the ESC key to exit the pause menu it dosen't work if you entered the menu using the mouse
   - [x] cat / tidal wave power ups are not getting re-uped after rechargeing?? (verify this)
   - [x] shuffel seems to still be a little bit buggy?? (verify this)

@@ -131,7 +131,7 @@ func (p *powerUp) draw(screen *ebiten.Image) {
 	var fill int
 	now := p.timer.time()
 	if now < p.countDownTimer {
-		fill = int(15 * (float64(p.countDownTimer-now) / float64(p.coolDown)))
+		fill = int(16*(float64(p.countDownTimer-now)/float64(p.coolDown))) + 2
 	}
 
 	rect := image.Rect(
