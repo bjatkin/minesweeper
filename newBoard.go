@@ -516,6 +516,13 @@ func (l *levelScean) load() error {
 	l.continueGame = newUIButton(v2f{82, 45}, continueBtn)
 	l.bestTime = &timer{timerAccumulator: l.settings.bestTime, coord: v2f{92, 111}}
 
+	// build the unlocked powers list
+	for _, pow := range unlockedPowers {
+		if pow.powType == lockedPow {
+			pow.img = locked[0]
+		}
+	}
+
 	return nil
 }
 
@@ -904,24 +911,26 @@ func (l *levelScean) update() error {
 			l.settings.beaten = true
 			allLevels[l.settings.nextLevel].unlocked = true
 
-			// unlock a power up
-			if l.settings.unlockedPow != 0 {
-				ulock := unlockedPowers[l.settings.unlockedPow]
-				unlockedPowers[l.settings.unlockedPow] = newPowIcon(l.settings.unlockedPow, ulock.coord)
-			}
-
 			// quit to the map
 			lvlMap := &levelSelect{
-				startMenu:   newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType}),
 				jeepIndex:   l.jeepIndexReturn,
 				levelNumber: l.levelIndexReturn,
 			}
 
 			if l.levelStarCounter.starCount > 0 {
-				lvlMap.showUnlockPow = true
-				lvlMap.unlockPow = l.settings.unlockedPow
+				// unlock a power up
+				if l.settings.unlockedPow != 0 {
+					ulock := unlockedPowers[l.settings.unlockedPow]
+					if ulock.powType == lockedPow {
+						lvlMap.unlockPow = l.settings.unlockedPow
+						unlockedPowers[l.settings.unlockedPow] = newPowIcon(l.settings.unlockedPow, ulock.coord)
+					}
+				}
+
 				lvlMap.unlockSlot = l.settings.unlockSlot
 			}
+
+			lvlMap.startMenu = newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
 
 			currentScean = lvlMap
 			err := currentScean.load()

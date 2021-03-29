@@ -20,11 +20,11 @@ type levelSelect struct {
 	startMenu        *levelStartMenu
 	levelNumber      int
 	bestTime         *timer
-	showUnlockPow    bool
 	unlockPow        int
 	unlockSlot       int
 	unlockPowSplash  *powUnlock
 	unlockSlotSplash *powUnlock
+	splashScreen     bool
 }
 
 // level select assets
@@ -291,13 +291,22 @@ func (l *levelSelect) load() error {
 	switch {
 	case l.unlockSlot == 1 && l.startMenu.powOne.powType == lockedPow:
 		l.startMenu.powOne = newPowIcon(minusMinePow, l.startMenu.powOne.coord)
+		l.unlockSlotSplash = &powUnlock{slot: true}
+		l.splashScreen = true
 	case l.unlockSlot == 2 && l.startMenu.powTwo.powType == lockedPow:
 		l.startMenu.powTwo = newPowIcon(minusMinePow, l.startMenu.powTwo.coord)
+		l.unlockSlotSplash = &powUnlock{slot: true}
+		l.splashScreen = true
 	case l.unlockSlot == 3 && l.startMenu.powThree.powType == lockedPow:
 		l.startMenu.powThree = newPowIcon(minusMinePow, l.startMenu.powThree.coord)
+		l.unlockSlotSplash = &powUnlock{slot: true}
+		l.splashScreen = true
 	}
 
-	l.unlockPowSplash = &powUnlock{powerUpType: addMinePow}
+	if l.unlockPow > 0 {
+		l.unlockPowSplash = &powUnlock{powerUpType: addMinePow}
+		l.splashScreen = true
+	}
 
 	return nil
 }
@@ -310,7 +319,22 @@ func (l *levelSelect) unload() error {
 }
 
 func (l *levelSelect) update() error {
-	l.unlockPowSplash.update()
+	if l.splashScreen {
+		switch {
+		case l.unlockPowSplash != nil:
+			l.unlockPowSplash.update()
+			if l.unlockPowSplash.closed {
+				l.unlockPowSplash = nil // destroy the ui
+			}
+		case l.unlockSlotSplash != nil:
+			l.unlockSlotSplash.update()
+			if l.unlockSlotSplash.closed {
+				l.unlockSlotSplash = nil // destroy the ui
+			}
+		default:
+			l.splashScreen = false
+		}
+	}
 
 	for i := 0; i < len(l.levelShake); i++ {
 		l.levelShake[i]--
@@ -569,5 +593,10 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 		screen.DrawImage(redStar, sop)
 	}
 
-	l.unlockPowSplash.draw(screen)
+	if l.unlockSlotSplash != nil {
+		l.unlockSlotSplash.draw(screen)
+	}
+	if l.unlockPowSplash != nil {
+		l.unlockPowSplash.draw(screen)
+	}
 }

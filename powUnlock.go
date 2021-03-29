@@ -13,6 +13,7 @@ type powUnlock struct {
 	powerUpType int
 	slot        bool
 	done        bool
+	closed      bool
 }
 
 var exclaim *ebiten.Image
@@ -26,6 +27,10 @@ func (pow *powUnlock) update() {
 
 	if btnp(ebiten.KeyEnter) || btnp(ebiten.KeyEscape) || mbtnp(ebiten.MouseButtonLeft) {
 		pow.done = true
+	}
+
+	if pow.scrollOut > 1.5 {
+		pow.closed = true
 	}
 }
 

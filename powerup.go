@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -18,6 +19,7 @@ type powerUp struct {
 	ready          bool
 	boundKey       ebiten.Key
 	timer          *timer
+	shake          int
 }
 
 var (
@@ -74,6 +76,10 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 	return &pow
 }
 
+func (p *powerUp) update() {
+	p.shake--
+}
+
 func (p *powerUp) wasSelected() bool {
 	if !p.available || p.pType == lockedPow {
 		return false
@@ -110,8 +116,12 @@ func (p *powerUp) activte() {
 }
 
 func (p *powerUp) draw(screen *ebiten.Image) {
+	var offset float64
+	if p.shake > 0 {
+		offset = math.Sin(float64(tickCounter) * 2)
+	}
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(p.coord.x, p.coord.y)
+	op.GeoM.Translate(p.coord.x+offset, p.coord.y)
 	screen.DrawImage(p.icons[1], op) // background
 
 	if !p.available {
@@ -121,7 +131,7 @@ func (p *powerUp) draw(screen *ebiten.Image) {
 	var fill int
 	now := p.timer.time()
 	if now < p.countDownTimer {
-		fill = int(16 * (float64(p.countDownTimer-now) / float64(p.coolDown)))
+		fill = int(15 * (float64(p.countDownTimer-now) / float64(p.coolDown)))
 	}
 
 	rect := image.Rect(
@@ -130,6 +140,7 @@ func (p *powerUp) draw(screen *ebiten.Image) {
 		p.icons[0].Bounds().Min.X+16,
 		p.icons[0].Bounds().Min.Y+16,
 	)
+
 	op.GeoM.Translate(0, float64(fill))
 	screen.DrawImage( // foreground
 		p.icons[0].SubImage(rect).(*ebiten.Image),
