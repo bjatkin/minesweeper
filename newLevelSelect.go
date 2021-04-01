@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -319,6 +320,45 @@ func (l *levelSelect) unload() error {
 }
 
 func (l *levelSelect) update() error {
+	// TEST saving code
+	if btnp(ebiten.KeyS) {
+		fmt.Println("SAVE")
+		s := saveGame{}
+		s.updateSave(
+			l.jeepIndex,
+			l.levelNumber,
+			[3]int{
+				l.startMenu.powOne.powType,
+				l.startMenu.powTwo.powType,
+				l.startMenu.powThree.powType,
+			},
+		)
+
+		s.saveData("test.save")
+	}
+
+	if btnp(ebiten.KeyD) {
+		fmt.Println("LOAD")
+		s := saveGame{}
+		s.loadData("test.save")
+
+		currentScean = &levelSelect{
+			startMenu:   newLevelStartMenu(s.currentPows),
+			jeepIndex:   s.jeepIndex,
+			levelNumber: s.levelNumber,
+		}
+		err := currentScean.load()
+		if err != nil {
+			return err
+		}
+
+		err = l.unload()
+		if err != nil {
+			return err
+		}
+
+	}
+
 	if l.splashScreen {
 		switch {
 		case l.unlockPowSplash != nil:

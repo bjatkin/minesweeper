@@ -824,7 +824,7 @@ func (l *levelScean) update() error {
 			l.paused = true
 			l.levelTimer.timer.stop()
 		}
-		if btnp(ebiten.KeyEscape) && l.filled {
+		if btnp(ebiten.KeyEscape) && l.filled && !l.loose {
 			if l.usingPowerUp {
 				l.usingPowerUp = false
 				for i := 0; i < len(*l.board); i++ {

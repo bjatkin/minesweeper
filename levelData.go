@@ -19,6 +19,25 @@ type n_levelData struct {
 	nextLevel        int
 }
 
+func (lvl *n_levelData) serializeLvl() []byte {
+	data := []byte{
+		convBool(lvl.unlocked),
+		convBool(lvl.beaten),
+		byte(lvl.stars),
+	}
+
+	data = append(data, convInt(int(lvl.bestTime))...)
+
+	return data
+}
+
+func (lvl *n_levelData) loadLvl(data []byte) {
+	lvl.unlocked = toBool(data[0])
+	lvl.beaten = toBool(data[1])
+	lvl.stars = int8(data[2])
+	lvl.bestTime = int64(toInt(data[3:7]))
+}
+
 // one second in nano seconds
 var sec = int64(1000000000)
 var min = 60 * sec
