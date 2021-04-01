@@ -6,14 +6,19 @@ import (
 )
 
 type saveGame struct {
-	allLevels   [14]*n_levelData
-	jeepIndex   int
-	levelNumber int
-	currentPows [3]int
+	allLevels      [14]*n_levelData
+	jeepIndex      int
+	levelNumber    int
+	currentPows    [3]int
+	unlockedPowers [7]*uiIcon
 }
 
 func (s *saveGame) updateSave(jeepIndex int, levelNumber int, pows [3]int) {
+	// save global state
 	s.allLevels = allLevels
+	s.unlockedPowers = unlockedPowers
+
+	// non global state
 	s.jeepIndex = jeepIndex
 	s.currentPows = pows
 	s.levelNumber = levelNumber
@@ -62,13 +67,13 @@ func (s *saveGame) saveData(fileName string) error {
 
 	data = append(data, byte(s.levelNumber))
 
-	data = append(data, byte(unlockedPowers[0].powType))
-	data = append(data, byte(unlockedPowers[1].powType))
-	data = append(data, byte(unlockedPowers[2].powType))
-	data = append(data, byte(unlockedPowers[3].powType))
-	data = append(data, byte(unlockedPowers[4].powType))
-	data = append(data, byte(unlockedPowers[5].powType))
-	data = append(data, byte(unlockedPowers[6].powType))
+	data = append(data, byte(s.unlockedPowers[0].powType))
+	data = append(data, byte(s.unlockedPowers[1].powType))
+	data = append(data, byte(s.unlockedPowers[2].powType))
+	data = append(data, byte(s.unlockedPowers[3].powType))
+	data = append(data, byte(s.unlockedPowers[4].powType))
+	data = append(data, byte(s.unlockedPowers[5].powType))
+	data = append(data, byte(s.unlockedPowers[6].powType))
 
 	f, err := os.Create(fileName)
 	if err != nil {
@@ -89,8 +94,9 @@ func (s *saveGame) loadData(fileName string) error {
 		return err
 	}
 
-	for i := 0; i < len(allLevels); i++ {
-		allLevels[i].loadLvl(data[i*7:])
+	for i := 0; i < len(s.allLevels); i++ {
+		s.allLevels[i] = &n_levelData{}
+		s.allLevels[i].loadLvl(data[i*7:])
 	}
 
 	s.jeepIndex = int(data[98])
@@ -102,13 +108,13 @@ func (s *saveGame) loadData(fileName string) error {
 
 	s.levelNumber = int(data[102])
 
-	unlockedPowers[0] = newPowIcon(int(data[103]), unlockedPowers[0].coord)
-	unlockedPowers[1] = newPowIcon(int(data[104]), unlockedPowers[1].coord)
-	unlockedPowers[2] = newPowIcon(int(data[105]), unlockedPowers[2].coord)
-	unlockedPowers[3] = newPowIcon(int(data[106]), unlockedPowers[3].coord)
-	unlockedPowers[4] = newPowIcon(int(data[107]), unlockedPowers[4].coord)
-	unlockedPowers[5] = newPowIcon(int(data[108]), unlockedPowers[5].coord)
-	unlockedPowers[6] = newPowIcon(int(data[109]), unlockedPowers[6].coord)
+	s.unlockedPowers[0] = newPowIcon(int(data[103]), v2f{0, 17})
+	s.unlockedPowers[1] = newPowIcon(int(data[104]), v2f{0, 35})
+	s.unlockedPowers[2] = newPowIcon(int(data[105]), v2f{0, 53})
+	s.unlockedPowers[3] = newPowIcon(int(data[106]), v2f{0, 71})
+	s.unlockedPowers[4] = newPowIcon(int(data[107]), v2f{0, 89})
+	s.unlockedPowers[5] = newPowIcon(int(data[108]), v2f{0, 107})
+	s.unlockedPowers[6] = newPowIcon(int(data[109]), v2f{0, 125})
 
 	return nil
 }
