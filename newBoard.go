@@ -932,8 +932,16 @@ func (l *levelScean) update() error {
 
 			lvlMap.startMenu = newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
 
+			// auto save the game
+			s := saveGame{}
+			s.updateSave(l.jeepIndexReturn, l.levelIndexReturn, [3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
+			err := s.saveData("test.save")
+			if err != nil {
+				return err
+			}
+
 			currentScean = lvlMap
-			err := currentScean.load()
+			err = currentScean.load()
 			if err != nil {
 				return err
 			}
@@ -1006,6 +1014,7 @@ func (l *levelScean) update() error {
 				jeepIndex:   l.jeepIndexReturn,
 				levelNumber: l.levelIndexReturn,
 			}
+
 			err := currentScean.load()
 			if err != nil {
 				return err

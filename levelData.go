@@ -35,7 +35,7 @@ func (lvl *n_levelData) loadLvl(data []byte) {
 	lvl.unlocked = toBool(data[0])
 	lvl.beaten = toBool(data[1])
 	lvl.stars = int8(data[2])
-	lvl.bestTime = int64(toInt(data[3:7]))
+	lvl.bestTime = int64(toInt(data[3:11]))
 }
 
 // one second in nano seconds

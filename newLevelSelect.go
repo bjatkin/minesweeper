@@ -309,6 +309,14 @@ func (l *levelSelect) load() error {
 		l.splashScreen = true
 	}
 
+	// auto save the game
+	s := saveGame{}
+	s.updateSave(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
+	err = s.saveData("test.save")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
