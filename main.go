@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"image/color"
 	"log"
 	"math/rand"
@@ -14,6 +15,7 @@ const (
 	screenHeight = 160
 )
 
+var quitGame = errors.New("GameOver")
 var tickCounter uint64
 
 // Game the main game object
@@ -104,7 +106,8 @@ func main() {
 
 	ebiten.SetWindowSize(screenWidth*4, screenHeight*4)
 	ebiten.SetWindowTitle("MineSweeper")
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	ebiten.SetWindowResizable(true)
+	if err := ebiten.RunGame(&Game{}); err != nil && err != quitGame {
 		log.Fatal(err)
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -332,57 +331,6 @@ func (l *levelSelect) unload() error {
 }
 
 func (l *levelSelect) update() error {
-	// TEST saving code
-	if btnp(ebiten.KeyS) {
-		fmt.Println("SAVE SLOT: ", CurrentSaveGame.slot)
-		CurrentSaveGame.saveGame(
-			l.jeepIndex,
-			l.levelNumber,
-			[3]int{
-				l.startMenu.powOne.powType,
-				l.startMenu.powTwo.powType,
-				l.startMenu.powThree.powType,
-			})
-		// s := saveGame{}
-		// s.updateSave(
-		// 	l.jeepIndex,
-		// 	l.levelNumber,
-		// 	[3]int{
-		// 		l.startMenu.powOne.powType,
-		// 		l.startMenu.powTwo.powType,
-		// 		l.startMenu.powThree.powType,
-		// 	},
-		// )
-
-		// s.saveData("test.save")
-	}
-
-	if btnp(ebiten.KeyD) {
-		fmt.Println("LOAD SLOT: ", CurrentSaveGame.slot)
-		err := CurrentSaveGame.loadGame(CurrentSaveGame.slot)
-		if err != nil {
-			return nil
-		}
-		// s := saveGame{}
-		// s.loadData("test.save")
-
-		currentScean = &levelSelect{
-			startMenu:   newLevelStartMenu(CurrentSaveGame.currentPows),
-			jeepIndex:   CurrentSaveGame.jeepIndex,
-			levelNumber: CurrentSaveGame.levelNumber,
-		}
-		err = currentScean.load()
-		if err != nil {
-			return err
-		}
-
-		err = l.unload()
-		if err != nil {
-			return err
-		}
-
-	}
-
 	if l.splashScreen {
 		switch {
 		case l.unlockPowSplash != nil:
@@ -397,6 +345,21 @@ func (l *levelSelect) update() error {
 			}
 		default:
 			l.splashScreen = false
+		}
+	}
+
+	// Return to the title screen
+	if btnp(ebiten.KeyEscape) {
+		currentScean = &titleScreanScean{}
+
+		err := currentScean.load()
+		if err != nil {
+			return err
+		}
+
+		err = l.unload()
+		if err != nil {
+			return err
 		}
 	}
 

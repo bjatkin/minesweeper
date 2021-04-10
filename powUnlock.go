@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -77,6 +78,9 @@ func (pow *powUnlock) draw(screen *ebiten.Image) {
 			screen.DrawImage(icons[pow.powerUpType], powOp)
 			powOp.GeoM.Translate(-7, -3)
 			drawDesc(screen, desc[pow.powerUpType])
+			nSec := int64(1000000000)
+			cool := newPowerUp(pow.powerUpType, ebiten.Key0, nil).coolDown / nSec
+			pxlPrint(screen, mainFont, 138, 48, fmt.Sprintf("%dsec.", cool))
 		}
 	}
 

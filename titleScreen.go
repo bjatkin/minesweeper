@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -10,6 +12,8 @@ type titleScreanScean struct {
 	loadGame    bool
 	loadedGames [3]*n_SaveGame
 	selSlot     int
+	shakeSlot   int
+	shakeCount  int
 	cursorIndex int
 }
 
@@ -131,7 +135,18 @@ func (t *titleScreanScean) unload() error {
 }
 
 func (t *titleScreanScean) update() error {
+	t.shakeCount--
 	var hovered bool
+
+	if btnp(ebiten.KeyEscape) {
+		if t.newGame || t.loadGame {
+			t.newGame = false
+			t.loadGame = false
+		} else {
+			return quitGame
+		}
+	}
+
 	if !t.loadGame && !t.newGame {
 		if btnp(ebiten.KeyDown) || btnp(ebiten.KeyS) {
 			t.cursorIndex = 1
@@ -141,12 +156,16 @@ func (t *titleScreanScean) update() error {
 		}
 
 		m := mCoords()
-		if m.x > 34 && m.y > 124 &&
+
+		// Hovering New Game
+		if m.x > 34 && m.y > 122 &&
 			m.x < 99 && m.y < 135 {
 			t.cursorIndex = 0
 			hovered = true
 		}
-		if m.x > 37 && m.y > 139 &&
+
+		// Hovering Load Game
+		if m.x > 37 && m.y > 135 &&
 			m.x < 107 && m.y < 149 {
 			t.cursorIndex = 1
 			hovered = true
@@ -177,6 +196,11 @@ func (t *titleScreanScean) update() error {
 	}
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
 		// Load into a new game
+		if t.loadGame && !t.loadedGames[t.selSlot-1].used {
+			t.shakeSlot = t.selSlot - 1
+			t.shakeCount = 30
+		}
+
 		if t.loadGame && t.loadedGames[t.selSlot-1].used {
 			CurrentSaveGame = t.loadedGames[t.selSlot-1]
 
@@ -261,10 +285,6 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 
 	// draw the new/ load game ui
 	if t.newGame || t.loadGame {
-		if btnp(ebiten.KeyEscape) {
-			t.newGame = false
-			t.loadGame = false
-		}
 		newOp := &ebiten.DrawImageOptions{}
 		newOp.GeoM.Translate(13, 3)
 		if t.newGame {
@@ -299,6 +319,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 			newOp.GeoM.Reset()
 			newOp.GeoM.Translate(118, 29+float64(i*43))
 			if !t.loadedGames[i].used {
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					newOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				screen.DrawImage(emptySlot, newOp)
 			} else {
 				// draw slot data

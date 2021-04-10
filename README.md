@@ -1,13 +1,16 @@
 # TODO
 ## features
-  - [ ] warn the player when they are going to destroy a saved game
-  - [ ] prevent a player from loading an empty game
-  - [ ] add a save game functionality
-  - [ ] add some load game functionality
+  - [ ] add a "are you sure you want to exit to the title screen?"
+  - [ ] add a "are you sure you want to quit message?"
+  - [ ] allow players to delete games
+  - [ ] add some visual feedback when trying to load a "new game" or trying to overwrite a "saved game"
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level itesm drow into the scean?)
   - [ ] add a full screen mode (look into the layout options that ebiten provides)
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [x] prevent a player from loading an empty game
+  - [x] add a save game functionality
+  - [x] add some load game functionality
   - [x] play an animation showing when you unlock powerups
   - [x] make power up's unlockable
   - [x] hide powerups on the menu screen if they haven't been unlocked yet
@@ -27,6 +30,7 @@
 ## bugs
   - [ ] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
   - [ ] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
+  - [x] show cooldown on unlock screen for new powerups
   - [x] seems like the jeep index is not working across the save/load barrier
   - [x] seems like the level stars are not working across the save/load barrier
   - [x] unlock diolouge is not working correctly
