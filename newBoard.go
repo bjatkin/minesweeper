@@ -595,6 +595,7 @@ func (l *levelScean) update() error {
 	var flipCount int
 	if !l.win && !l.loose &&
 		mbtnr(ebiten.MouseButtonLeft) &&
+		!btn(ebiten.KeyShift) &&
 		l.mouseAnchor.dist(mCoordsF()) < 5 &&
 		l.clickCount < 30 &&
 		!l.usingPowerUp &&
@@ -767,7 +768,8 @@ func (l *levelScean) update() error {
 
 	// flag a tile
 	if !l.win && !l.loose &&
-		mbtnp(ebiten.MouseButtonRight) &&
+		(mbtnp(ebiten.MouseButtonRight) ||
+			(mbtnp(ebiten.MouseButtonLeft) && btn(ebiten.KeyShift))) &&
 		!l.paused {
 		minX := 9999999
 		var selTile *n_tile
@@ -933,12 +935,16 @@ func (l *levelScean) update() error {
 			lvlMap.startMenu = newLevelStartMenu([3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
 
 			// auto save the game
-			s := saveGame{}
-			s.updateSave(l.jeepIndexReturn, l.levelIndexReturn, [3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
-			err := s.saveData("test.save")
+			err := CurrentSaveGame.saveGame(l.jeepIndexReturn, l.levelIndexReturn, [3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
 			if err != nil {
 				return err
 			}
+			// s := saveGame{}
+			// s.updateSave(l.jeepIndexReturn, l.levelIndexReturn, [3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
+			// err := s.saveData("test.save")
+			// if err != nil {
+			// 	return err
+			// }
 
 			currentScean = lvlMap
 			err = currentScean.load()

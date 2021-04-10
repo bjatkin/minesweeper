@@ -23,6 +23,7 @@ var keyTracker = map[ebiten.Key]uint{
 	ebiten.Key3:      0,
 	ebiten.Key4:      0,
 	ebiten.Key5:      0,
+	ebiten.KeyShift:  0,
 }
 
 func updateKeys() {

@@ -210,7 +210,7 @@ func (l *levelSelect) load() error {
 	}
 
 	l.bestTime = &timer{coord: v2f{194, 1}, timerAccumulator: allLevels[0].bestTime}
-	l.currLevel = allLevels[l.levelNumber]
+	l.currLevel = allLevels[l.levelNumber-1]
 
 	l.levelPoints = []v2f{
 		{40, 220},  // start
@@ -305,17 +305,21 @@ func (l *levelSelect) load() error {
 	}
 
 	if l.unlockPow > 0 {
-		l.unlockPowSplash = &powUnlock{powerUpType: addMinePow}
+		l.unlockPowSplash = &powUnlock{powerUpType: l.unlockPow}
 		l.splashScreen = true
 	}
 
 	// auto save the game
-	s := saveGame{}
-	s.updateSave(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
-	err = s.saveData("test.save")
+	err = CurrentSaveGame.saveGame(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
 	if err != nil {
 		return err
 	}
+	// s := saveGame{}
+	// s.updateSave(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
+	// err = s.saveData("test.save")
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -330,32 +334,44 @@ func (l *levelSelect) unload() error {
 func (l *levelSelect) update() error {
 	// TEST saving code
 	if btnp(ebiten.KeyS) {
-		fmt.Println("SAVE")
-		s := saveGame{}
-		s.updateSave(
+		fmt.Println("SAVE SLOT: ", CurrentSaveGame.slot)
+		CurrentSaveGame.saveGame(
 			l.jeepIndex,
 			l.levelNumber,
 			[3]int{
 				l.startMenu.powOne.powType,
 				l.startMenu.powTwo.powType,
 				l.startMenu.powThree.powType,
-			},
-		)
+			})
+		// s := saveGame{}
+		// s.updateSave(
+		// 	l.jeepIndex,
+		// 	l.levelNumber,
+		// 	[3]int{
+		// 		l.startMenu.powOne.powType,
+		// 		l.startMenu.powTwo.powType,
+		// 		l.startMenu.powThree.powType,
+		// 	},
+		// )
 
-		s.saveData("test.save")
+		// s.saveData("test.save")
 	}
 
 	if btnp(ebiten.KeyD) {
-		fmt.Println("LOAD")
-		s := saveGame{}
-		s.loadData("test.save")
+		fmt.Println("LOAD SLOT: ", CurrentSaveGame.slot)
+		err := CurrentSaveGame.loadGame(CurrentSaveGame.slot)
+		if err != nil {
+			return nil
+		}
+		// s := saveGame{}
+		// s.loadData("test.save")
 
 		currentScean = &levelSelect{
-			startMenu:   newLevelStartMenu(s.currentPows),
-			jeepIndex:   s.jeepIndex,
-			levelNumber: s.levelNumber,
+			startMenu:   newLevelStartMenu(CurrentSaveGame.currentPows),
+			jeepIndex:   CurrentSaveGame.jeepIndex,
+			levelNumber: CurrentSaveGame.levelNumber,
 		}
-		err := currentScean.load()
+		err = currentScean.load()
 		if err != nil {
 			return err
 		}
@@ -440,6 +456,7 @@ func (l *levelSelect) update() error {
 		}
 
 		goal := l.connectPoints[l.jeepIndex]
+		jeep.timing = []uint{15, 15}
 		if l.jeepCoord.dist(goal) < 2 {
 			if l.jeepIndex < l.jeepGoalIndex {
 				l.jeepIndex++
@@ -449,6 +466,7 @@ func (l *levelSelect) update() error {
 			}
 		} else {
 			speed := 0.75
+			jeep.timing = []uint{8, 8}
 			if l.jeepCoord.x < goal.x {
 				l.jeepFlip = false
 				l.jeepCoord.x += speed

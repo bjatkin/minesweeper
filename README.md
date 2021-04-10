@@ -1,10 +1,12 @@
 # TODO
 ## features
+  - [ ] warn the player when they are going to destroy a saved game
+  - [ ] prevent a player from loading an empty game
+  - [ ] add a save game functionality
+  - [ ] add some load game functionality
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level itesm drow into the scean?)
   - [ ] add a full screen mode (look into the layout options that ebiten provides)
-  - [ ] add a save game functionality
-  - [ ] add some load game functionality
   - [ ] limit the number of a specific power up that you can bring into a map
   - [x] play an animation showing when you unlock powerups
   - [x] make power up's unlockable
@@ -23,9 +25,12 @@
   - [x] mock a power up unlock screen
 
 ## bugs
-  - [ ] best times for levels are not being saved/ loaded correctly
   - [ ] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
   - [ ] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
+  - [x] seems like the jeep index is not working across the save/load barrier
+  - [x] seems like the level stars are not working across the save/load barrier
+  - [x] unlock diolouge is not working correctly
+  - [x] best times for levels are not being saved/ loaded correctly
   - [x] powerups look fully charged even when they are not. The last row of pixels should not be drawn in until the power up is 100% charged or it feels bad
   - [x] when you use the ESC key to exit the pause menu it dosen't work if you entered the menu using the mouse
   - [x] cat / tidal wave power ups are not getting re-uped after rechargeing?? (verify this)

@@ -8,25 +8,26 @@ type titleScreanScean struct {
 	title       *ebiten.Image
 	newGame     bool
 	loadGame    bool
-	loadedGames [3]*saveGame
+	loadedGames [3]*n_SaveGame
 	selSlot     int
 	cursorIndex int
 }
 
-var gameSlot int
-var eggCursor *n_aniSprite
-var gameSlots *ebiten.Image
-var newGame *ebiten.Image
-var loadGame *ebiten.Image
-var emptySlot *ebiten.Image
-var lvlSlot *ebiten.Image
-var powSlot *ebiten.Image
-var hilightSlot *ebiten.Image
-var slot1, slot2, slot3 *ebiten.Image
-var starsSlot *ebiten.Image
-var greenTick *ebiten.Image
-var pinkTick *ebiten.Image
-var blueTick *ebiten.Image
+var (
+	eggCursor           *n_aniSprite
+	gameSlots           *ebiten.Image
+	newGame             *ebiten.Image
+	loadGame            *ebiten.Image
+	emptySlot           *ebiten.Image
+	lvlSlot             *ebiten.Image
+	powSlot             *ebiten.Image
+	hilightSlot         *ebiten.Image
+	slot1, slot2, slot3 *ebiten.Image
+	starsSlot           *ebiten.Image
+	greenTick           *ebiten.Image
+	pinkTick            *ebiten.Image
+	blueTick            *ebiten.Image
+)
 
 func (t *titleScreanScean) load() error {
 	var err error
@@ -112,12 +113,13 @@ func (t *titleScreanScean) load() error {
 	}
 	// end foreign assets
 
-	s := saveGame{}
-	err = s.loadData("test.save")
-	if err != nil {
-		return err
+	for i := 0; i < 3; i++ {
+		t.loadedGames[i] = &n_SaveGame{}
+		err := t.loadedGames[i].loadGame(i)
+		if err != nil {
+			return err
+		}
 	}
-	t.loadedGames[0] = &s
 
 	return nil
 }
@@ -175,17 +177,17 @@ func (t *titleScreanScean) update() error {
 	}
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
 		// Load into a new game
-		if t.loadGame {
-			gameSlot = t.selSlot
+		if t.loadGame && t.loadedGames[t.selSlot-1].used {
+			CurrentSaveGame = t.loadedGames[t.selSlot-1]
 
 			lvlMap := &levelSelect{
-				jeepIndex:   t.loadedGames[0].jeepIndex,
-				levelNumber: t.loadedGames[0].levelNumber,
-				startMenu:   newLevelStartMenu(t.loadedGames[0].currentPows),
+				jeepIndex:   CurrentSaveGame.jeepIndex,
+				levelNumber: CurrentSaveGame.levelNumber,
+				startMenu:   newLevelStartMenu(CurrentSaveGame.currentPows),
 			}
 
 			// unlock levels
-			for i, lvl := range t.loadedGames[0].allLevels {
+			for i, lvl := range CurrentSaveGame.allLevels {
 				allLevels[i].beaten = lvl.beaten
 				allLevels[i].stars = lvl.stars
 				allLevels[i].unlocked = lvl.unlocked
@@ -193,7 +195,7 @@ func (t *titleScreanScean) update() error {
 			}
 
 			// unlock powerups
-			for i, pow := range t.loadedGames[0].unlockedPowers {
+			for i, pow := range CurrentSaveGame.unlockedPowers {
 				unlockedPowers[i] = newPowIcon(pow.powType, unlockedPowers[i].coord)
 			}
 
@@ -208,8 +210,9 @@ func (t *titleScreanScean) update() error {
 				return err
 			}
 		}
-		if t.newGame {
-			gameSlot = t.selSlot
+		if t.newGame && !t.loadedGames[t.selSlot-1].used {
+			CurrentSaveGame.slot = t.selSlot - 1
+			CurrentSaveGame.used = true
 
 			currentScean = newLevelScean(
 				allLevels[0],
@@ -295,7 +298,7 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 		for i := 0; i < 3; i++ {
 			newOp.GeoM.Reset()
 			newOp.GeoM.Translate(118, 29+float64(i*43))
-			if t.loadedGames[i] == nil {
+			if !t.loadedGames[i].used {
 				screen.DrawImage(emptySlot, newOp)
 			} else {
 				// draw slot data
