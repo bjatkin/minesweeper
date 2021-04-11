@@ -2,12 +2,12 @@
 ## features
   - [ ] add a "are you sure you want to exit to the title screen?"
   - [ ] add a "are you sure you want to quit message?"
-  - [ ] allow players to delete games
   - [ ] add some visual feedback when trying to load a "new game" or trying to overwrite a "saved game"
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level itesm drow into the scean?)
-  - [ ] add a full screen mode (look into the layout options that ebiten provides)
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [x] add a full screen mode (look into the layout options that ebiten provides)
+  - [x] allow players to delete saved games
   - [x] prevent a player from loading an empty game
   - [x] add a save game functionality
   - [x] add some load game functionality

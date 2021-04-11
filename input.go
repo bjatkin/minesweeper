@@ -97,6 +97,15 @@ func mbtnp(btn ebiten.MouseButton) bool {
 	return false
 }
 
+func eatMbtnp(btn ebiten.MouseButton) {
+	if btn == ebiten.MouseButtonLeft {
+		leftMouseButtonCount++
+	}
+	if btn == ebiten.MouseButtonRight {
+		rightMouseButtonCount++
+	}
+}
+
 func mbtnr(btn ebiten.MouseButton) bool {
 	if btn == ebiten.MouseButtonLeft {
 		return leftMouseButtonReleased
@@ -106,6 +115,15 @@ func mbtnr(btn ebiten.MouseButton) bool {
 	}
 	log.Fatalf("Untracked Mouse Button: %v", btn)
 	return false
+}
+
+func eatMbtnr(btn ebiten.MouseButton) {
+	if btn == ebiten.MouseButtonLeft {
+		leftMouseButtonReleased = false
+	}
+	if btn == ebiten.MouseButtonRight {
+		leftMouseButtonReleased = false
+	}
 }
 
 func mbtn(btn ebiten.MouseButton) bool {

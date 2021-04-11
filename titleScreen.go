@@ -12,6 +12,7 @@ type titleScreanScean struct {
 	loadGame    bool
 	loadedGames [3]*n_SaveGame
 	selSlot     int
+	delHover    bool
 	shakeSlot   int
 	shakeCount  int
 	cursorIndex int
@@ -31,6 +32,7 @@ var (
 	greenTick           *ebiten.Image
 	pinkTick            *ebiten.Image
 	blueTick            *ebiten.Image
+	trashHilight        *ebiten.Image
 )
 
 func (t *titleScreanScean) load() error {
@@ -75,6 +77,7 @@ func (t *titleScreanScean) load() error {
 	slot1 = subImage(ss, 160, 408, 36, 15)
 	slot2 = subImage(ss, 160, 424, 36, 15)
 	slot3 = subImage(ss, 160, 440, 36, 15)
+	trashHilight = subImage(ss, 584, 144, 20, 20)
 
 	// foreign assets
 	redStar = subImage(ss, 208, 16, 8, 8)
@@ -135,7 +138,9 @@ func (t *titleScreanScean) unload() error {
 }
 
 func (t *titleScreanScean) update() error {
+	t.delHover = false
 	t.shakeCount--
+
 	var hovered bool
 
 	if btnp(ebiten.KeyEscape) {
@@ -174,6 +179,7 @@ func (t *titleScreanScean) update() error {
 	if t.loadGame || t.newGame {
 		t.selSlot = 0
 		m := mCoords()
+		// Hovering one of the 3 main slots
 		if m.x > 16 && m.y > 16 &&
 			m.x < 227 && m.y < 55 {
 			t.selSlot = 1
@@ -187,6 +193,25 @@ func (t *titleScreanScean) update() error {
 			t.selSlot = 3
 		}
 
+		// Hovering the trash button
+		// 31, 34, 50, 53
+		if m.x > 30 && m.y > 33 &&
+			m.x < 51 && m.y < 54 {
+			t.delHover = true
+		}
+
+		// 31, 77, 50, 96
+		if m.x > 30 && m.y > 76 &&
+			m.x < 51 && m.y < 97 {
+			t.delHover = true
+		}
+
+		// 31, 120, 50, 139
+		if m.x > 30 && m.y > 119 &&
+			m.x < 51 && m.y < 140 {
+			t.delHover = true
+		}
+
 		if mbtnp(ebiten.MouseButtonLeft) {
 			if t.selSlot == 0 {
 				t.loadGame = false
@@ -195,13 +220,22 @@ func (t *titleScreanScean) update() error {
 		}
 	}
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
+		// Delete a game
+		if (t.loadGame || t.newGame) && t.delHover && t.selSlot > 0 {
+			t.loadedGames[t.selSlot-1].used = false
+			err := t.loadedGames[t.selSlot-1].saveGame(0, 0, [3]int{})
+			if err != nil {
+				return err
+			}
+		}
+
 		// Load into a new game
-		if t.loadGame && !t.loadedGames[t.selSlot-1].used {
+		if t.loadGame && !t.loadedGames[t.selSlot-1].used && !t.delHover {
 			t.shakeSlot = t.selSlot - 1
 			t.shakeCount = 30
 		}
 
-		if t.loadGame && t.loadedGames[t.selSlot-1].used {
+		if t.loadGame && t.loadedGames[t.selSlot-1].used && !t.delHover {
 			CurrentSaveGame = t.loadedGames[t.selSlot-1]
 
 			lvlMap := &levelSelect{
@@ -234,7 +268,8 @@ func (t *titleScreanScean) update() error {
 				return err
 			}
 		}
-		if t.newGame && !t.loadedGames[t.selSlot-1].used {
+
+		if t.newGame && !t.loadedGames[t.selSlot-1].used && !t.delHover {
 			CurrentSaveGame.slot = t.selSlot - 1
 			CurrentSaveGame.used = true
 
@@ -295,6 +330,24 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 		newOp.GeoM.Translate(0, 10)
 		screen.DrawImage(gameSlots, newOp)
 
+		// Hilight the delete button
+		if t.delHover {
+			selOp := &ebiten.DrawImageOptions{}
+			if t.selSlot == 1 {
+				selOp.GeoM.Translate(31, 34)
+				screen.DrawImage(trashHilight, selOp)
+			}
+			if t.selSlot == 2 {
+				selOp.GeoM.Translate(31, 77)
+				screen.DrawImage(trashHilight, selOp)
+			}
+			if t.selSlot == 3 {
+				selOp.GeoM.Translate(31, 120)
+				screen.DrawImage(trashHilight, selOp)
+			}
+		}
+
+		// Hilight the selected slot
 		selOp := &ebiten.DrawImageOptions{}
 		if t.selSlot == 1 {
 			selOp.GeoM.Translate(16, 16)

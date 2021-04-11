@@ -27,6 +27,7 @@ func (pow *powUnlock) update() {
 	}
 
 	if btnp(ebiten.KeyEnter) || btnp(ebiten.KeyEscape) || mbtnp(ebiten.MouseButtonLeft) {
+		eatMbtnp(ebiten.MouseButtonLeft)
 		pow.done = true
 	}
 

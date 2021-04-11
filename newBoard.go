@@ -637,6 +637,9 @@ func (l *levelScean) update() error {
 			if !selTile.flipped {
 				flipCount = selTile.flip()
 				if flipCount > 0 {
+					eatMbtnr(ebiten.MouseButtonLeft)
+				}
+				if flipCount > 0 {
 					l.duckCharacterUI.state = duckSurprised
 					l.duckCharacterUI.surprised = 30
 				}
@@ -656,6 +659,7 @@ func (l *levelScean) update() error {
 					}
 				}
 				if flags == selTile.adjCount {
+					eatMbtnr(ebiten.MouseButtonLeft)
 					for i := 0; i < 8; i++ {
 						if selTile.adj[i] != nil && !selTile.adj[i].flagged {
 							flipCount += selTile.adj[i].flip()
@@ -782,6 +786,9 @@ func (l *levelScean) update() error {
 		if selTile != nil {
 			selTile.flag()
 		}
+
+		eatMbtnp(ebiten.MouseButtonRight)
+		eatMbtnp(ebiten.MouseButtonLeft)
 	}
 
 	// pan the board around
@@ -939,12 +946,6 @@ func (l *levelScean) update() error {
 			if err != nil {
 				return err
 			}
-			// s := saveGame{}
-			// s.updateSave(l.jeepIndexReturn, l.levelIndexReturn, [3]int{l.powerUps[0].pType, l.powerUps[1].pType, l.powerUps[2].pType})
-			// err := s.saveData("test.save")
-			// if err != nil {
-			// 	return err
-			// }
 
 			currentScean = lvlMap
 			err = currentScean.load()
@@ -1336,6 +1337,7 @@ func doScaredCat(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 			for i := 0; i < len(*board); i++ {
 				(*board)[i].bounce = false
 			}
+			eatMbtnp(ebiten.MouseButtonLeft)
 			return true
 		}
 	}
@@ -1398,6 +1400,7 @@ func doMinusMinePow(board *[]n_tile, mouseAnchor v2f, clickCount int) bool {
 					adj.flip()
 				}
 			}
+			eatMbtnp(ebiten.MouseButtonLeft)
 			return true
 		}
 		if selTile != nil && selTile.adjCount <= flagCount {
