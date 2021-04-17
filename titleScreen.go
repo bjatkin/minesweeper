@@ -269,6 +269,13 @@ func (t *titleScreanScean) update() error {
 			}
 		}
 
+		// Try to start a new game on an already used slot
+		if t.newGame && t.loadedGames[t.selSlot-1].used && !t.delHover {
+			t.shakeSlot = t.selSlot - 1
+			t.shakeCount = 30
+		}
+
+		// Start a new game
 		if t.newGame && !t.loadedGames[t.selSlot-1].used && !t.delHover {
 			CurrentSaveGame.slot = t.selSlot - 1
 			CurrentSaveGame.used = true
@@ -379,6 +386,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 			} else {
 				// draw slot data
 				dataOp := &ebiten.DrawImageOptions{}
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					dataOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				dataOp.GeoM.Translate(57, 18+float64(i*43))
 				screen.DrawImage(lvlSlot, dataOp)
 				dataOp.GeoM.Translate(40, 0)
@@ -389,6 +399,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 				// draw all the icons here
 				// lvl icons
 				iconOp := &ebiten.DrawImageOptions{}
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					iconOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				iconOp.GeoM.Translate(60, 40+float64(i*43))
 				for i, lvl := range t.loadedGames[i].allLevels {
 					if lvl.beaten {
@@ -403,6 +416,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 
 				// pow icons
 				iconOp.GeoM.Reset()
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					iconOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				iconOp.GeoM.Translate(100, 40+float64(i*43))
 				for _, pow := range t.loadedGames[i].unlockedPowers {
 					if pow.powType != lockedPow {
@@ -413,6 +429,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 
 				// slot icons
 				iconOp.GeoM.Reset()
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					iconOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				iconOp.GeoM.Translate(100, 47+float64(i*43))
 				for _, slot := range t.loadedGames[i].currentPows {
 					if slot != lockedPow {
@@ -428,6 +447,9 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 				}
 
 				starOp := &ebiten.DrawImageOptions{}
+				if i == t.shakeSlot && t.shakeCount > 0 {
+					starOp.GeoM.Translate(math.Sin(float64(tickCounter)), 0)
+				}
 				starOp.GeoM.Translate(139, 38+float64(i*43))
 				var counter int
 				for i := 0; i < 2; i++ {

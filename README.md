@@ -1,11 +1,12 @@
 # TODO
 ## features
-  - [ ] add a "are you sure you want to exit to the title screen?"
-  - [ ] add a "are you sure you want to quit message?"
-  - [ ] add some visual feedback when trying to load a "new game" or trying to overwrite a "saved game"
+  - [ ] add a "are you sure you want to exit to the title screen?" message
+  - [ ] add a "are you sure you want to quit?" message
+  - [ ] add a "are you sure you want to delete this game?"
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level itesm drow into the scean?)
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [x] add some visual feedback when trying to load a "new game" or trying to overwrite a "saved game"
   - [x] add a full screen mode (look into the layout options that ebiten provides)
   - [x] allow players to delete saved games
   - [x] prevent a player from loading an empty game
@@ -21,6 +22,9 @@
   - [x] make it so you can bring less than 3 powerups into battle
 
 ## graphics:
+  - [x] mock the quit game message
+  - [x] mock the delete game message
+  - [x] mock the exit game message
   - [x] mock a save game ui/ flow
   - [x] mock a load game ui/ flow
   - [x] mock a new pause menu (with added resume/ continue button)
@@ -29,7 +33,7 @@
 
 ## bugs
   - [ ] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
-  - [ ] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
+  - [x] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
   - [x] show cooldown on unlock screen for new powerups
   - [x] seems like the jeep index is not working across the save/load barrier
   - [x] seems like the level stars are not working across the save/load barrier
