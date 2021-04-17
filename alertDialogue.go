@@ -26,15 +26,19 @@ var (
 	noBtn         [3]*ebiten.Image
 )
 
-// TODO: fixup these coord positions
 func newAlertDialogue(coord v2f, alertType int) *alertDialogue {
 	yesCoord := coord
-	yesCoord.x += 15
-	yesCoord.y += 10
+	yesCoord.x += 7
+	yesCoord.y += 43
 
 	noCoord := coord
-	yesCoord.x += 5
-	yesCoord.y += 10
+	noCoord.x += 56
+	noCoord.y += 43
+
+	if alertType == quitGameAlertType {
+		yesCoord.y -= 6
+		noCoord.y -= 6
+	}
 
 	return &alertDialogue{
 		coord:     coord,
@@ -48,26 +52,31 @@ func loadAlertDialogue(ss *ebiten.Image) {
 	quitGameAlert = subImage(ss, 904, 0, 96, 57)
 	exitMapAlert = subImage(ss, 904, 64, 96, 64)
 	deleteAlert = subImage(ss, 904, 128, 96, 64)
-	yesBtn = [3]*ebiten.Image{
-		subImage(ss, 904, 192, 34, 16),
-		subImage(ss, 904, 208, 34, 16),
-		subImage(ss, 904, 225, 34, 16),
-	}
 	noBtn = [3]*ebiten.Image{
-		subImage(ss, 952, 192, 34, 16),
-		subImage(ss, 952, 208, 34, 16),
-		subImage(ss, 952, 225, 34, 16),
+		subImage(ss, 904, 224, 34, 16), // normal
+		subImage(ss, 904, 208, 34, 16), // hover
+		subImage(ss, 904, 192, 34, 16), // clicked
 	}
+	yesBtn = [3]*ebiten.Image{
+		subImage(ss, 952, 224, 34, 16), // normal
+		subImage(ss, 952, 208, 34, 16), // hover
+		subImage(ss, 952, 192, 34, 16), // clicked
+	}
+}
+
+func (a *alertDialogue) reset() {
+	a.yes = false
+	a.no = false
 }
 
 func (a *alertDialogue) update() {
 	a.yesBtn.update()
 	a.noBtn.update()
 
-	if a.yesBtn.clickDone {
+	if a.yesBtn.wasClicked() {
 		a.yes = true
 	}
-	if a.noBtn.clickDone {
+	if a.noBtn.wasClicked() {
 		a.no = true
 	}
 }

@@ -7,15 +7,20 @@ import (
 )
 
 type titleScreanScean struct {
-	title       *ebiten.Image
-	newGame     bool
-	loadGame    bool
-	loadedGames [3]*n_SaveGame
-	selSlot     int
-	delHover    bool
-	shakeSlot   int
-	shakeCount  int
-	cursorIndex int
+	title              *ebiten.Image
+	newGame            bool
+	loadGame           bool
+	loadedGames        [3]*n_SaveGame
+	selSlot            int
+	delHover           bool
+	shakeSlot          int
+	shakeCount         int
+	cursorIndex        int
+	quitGameDialogue   *alertDialogue
+	quittingGame       bool
+	deleteGameDialogue *alertDialogue
+	deletingGame       bool
+	deletingGameSlot   int
 }
 
 var (
@@ -46,6 +51,8 @@ func (t *titleScreanScean) load() error {
 	if err != nil {
 		return err
 	}
+
+	loadAlertDialogue(ss)
 
 	eggCursor = n_newAniSprite(
 		[]*ebiten.Image{
@@ -128,6 +135,9 @@ func (t *titleScreanScean) load() error {
 		}
 	}
 
+	t.quitGameDialogue = newAlertDialogue(v2f{74, 44}, quitGameAlertType)
+	t.deleteGameDialogue = newAlertDialogue(v2f{74, 44}, deleteGameAlertType)
+
 	return nil
 }
 
@@ -148,8 +158,38 @@ func (t *titleScreanScean) update() error {
 			t.newGame = false
 			t.loadGame = false
 		} else {
+			t.quittingGame = true
+		}
+	}
+
+	if t.quittingGame {
+		t.quitGameDialogue.update()
+		if t.quitGameDialogue.yes {
 			return quitGame
 		}
+		if t.quitGameDialogue.no {
+			t.quittingGame = false
+			t.quitGameDialogue.reset()
+		}
+		return nil
+	}
+
+	if t.deletingGame {
+		t.deleteGameDialogue.update()
+		if t.deleteGameDialogue.yes {
+			t.loadedGames[t.deletingGameSlot].used = false
+			err := t.loadedGames[t.deletingGameSlot].saveGame(0, 0, [3]int{})
+			if err != nil {
+				return err
+			}
+			t.deletingGame = false
+			t.deleteGameDialogue.reset()
+		}
+		if t.deleteGameDialogue.no {
+			t.deletingGame = false
+			t.deleteGameDialogue.reset()
+		}
+		return nil
 	}
 
 	if !t.loadGame && !t.newGame {
@@ -222,11 +262,8 @@ func (t *titleScreanScean) update() error {
 	if btnp(ebiten.KeyEnter) || mbtnp(ebiten.MouseButtonLeft) {
 		// Delete a game
 		if (t.loadGame || t.newGame) && t.delHover && t.selSlot > 0 {
-			t.loadedGames[t.selSlot-1].used = false
-			err := t.loadedGames[t.selSlot-1].saveGame(0, 0, [3]int{})
-			if err != nil {
-				return err
-			}
+			t.deletingGame = true
+			t.deletingGameSlot = t.selSlot - 1
 		}
 
 		// Load into a new game
@@ -464,5 +501,13 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 				}
 			}
 		}
+	}
+
+	if t.quittingGame {
+		t.quitGameDialogue.draw(screen)
+	}
+
+	if t.deletingGame {
+		t.deleteGameDialogue.draw(screen)
 	}
 }

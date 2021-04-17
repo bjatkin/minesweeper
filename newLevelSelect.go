@@ -7,24 +7,26 @@ import (
 )
 
 type levelSelect struct {
-	scrollPt         float64
-	jeepCoord        v2f
-	jeepIndex        int
-	jeepFlip         bool
-	jeepGoalIndex    int
-	levelPoints      []v2f
-	connectPoints    []v2f
-	levelShake       []int
-	selectLevel      bool
-	currLevel        *n_levelData
-	startMenu        *levelStartMenu
-	levelNumber      int
-	bestTime         *timer
-	unlockPow        int
-	unlockSlot       int
-	unlockPowSplash  *powUnlock
-	unlockSlotSplash *powUnlock
-	splashScreen     bool
+	scrollPt                  float64
+	jeepCoord                 v2f
+	jeepIndex                 int
+	jeepFlip                  bool
+	jeepGoalIndex             int
+	levelPoints               []v2f
+	connectPoints             []v2f
+	levelShake                []int
+	selectLevel               bool
+	currLevel                 *n_levelData
+	startMenu                 *levelStartMenu
+	levelNumber               int
+	bestTime                  *timer
+	unlockPow                 int
+	unlockSlot                int
+	unlockPowSplash           *powUnlock
+	unlockSlotSplash          *powUnlock
+	splashScreen              bool
+	quitToTitleScreenDialogue *alertDialogue
+	quittingToTitleScreen     bool
 }
 
 // level select assets
@@ -201,6 +203,8 @@ func (l *levelSelect) load() error {
 	}
 	// end foreign assets
 
+	loadAlertDialogue(ss)
+
 	// make sure unlocked powers are all loaded
 	for i := 0; i < len(unlockedPowers); i++ {
 		if unlockedPowers[i].img == nil {
@@ -308,17 +312,13 @@ func (l *levelSelect) load() error {
 		l.splashScreen = true
 	}
 
+	l.quitToTitleScreenDialogue = newAlertDialogue(v2f{74, 44}, exitMapAlertType)
+
 	// auto save the game
 	err = CurrentSaveGame.saveGame(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
 	if err != nil {
 		return err
 	}
-	// s := saveGame{}
-	// s.updateSave(l.jeepIndex, l.levelNumber, [3]int{l.startMenu.powOne.powType, l.startMenu.powTwo.powType, l.startMenu.powThree.powType})
-	// err = s.saveData("test.save")
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }
@@ -350,16 +350,27 @@ func (l *levelSelect) update() error {
 
 	// Return to the title screen
 	if btnp(ebiten.KeyEscape) {
-		currentScean = &titleScreanScean{}
+		l.quittingToTitleScreen = true
+	}
 
-		err := currentScean.load()
-		if err != nil {
-			return err
+	if l.quittingToTitleScreen {
+		l.quitToTitleScreenDialogue.update()
+		if l.quitToTitleScreenDialogue.yes {
+			currentScean = &titleScreanScean{}
+
+			err := currentScean.load()
+			if err != nil {
+				return err
+			}
+
+			err = l.unload()
+			if err != nil {
+				return err
+			}
 		}
-
-		err = l.unload()
-		if err != nil {
-			return err
+		if l.quitToTitleScreenDialogue.no {
+			l.quittingToTitleScreen = false
+			l.quitToTitleScreenDialogue.reset()
 		}
 	}
 
@@ -627,5 +638,9 @@ func (l *levelSelect) draw(screen *ebiten.Image) {
 	}
 	if l.unlockPowSplash != nil {
 		l.unlockPowSplash.draw(screen)
+	}
+
+	if l.quittingToTitleScreen {
+		l.quitToTitleScreenDialogue.draw(screen)
 	}
 }

@@ -623,7 +623,7 @@ func (l *levelScean) update() error {
 				l.filled = true
 
 				if l.settings.frozenTileCount > 0 {
-					freezeTiles(l.board, l.settings.frozenTileCount)
+					freezeTiles(l.board, l.settings.frozenTileCount, selTile.index)
 				}
 				if l.settings.lockedTileCount > 0 {
 					lockTiles(l.board, l.settings.lockedTileCount)
@@ -1485,10 +1485,14 @@ func lockTiles(board *[]n_tile, tileCount int) {
 	}
 }
 
-func freezeTiles(board *[]n_tile, tileCount int) {
+func freezeTiles(board *[]n_tile, tileCount int, safeTile v2i) {
 	count := tileCount
 	for count > 0 {
 		tile := &(*board)[rand.Intn(len(*board))]
+		if tile.index.x == safeTile.x && tile.index.y == safeTile.y {
+			// don't freeze the safe tile
+			continue
+		}
 		if !tile.iced {
 			tile.iced = true
 			tile.gfx = n_newAniSprite(
