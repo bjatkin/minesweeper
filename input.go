@@ -66,6 +66,7 @@ var rightMouseButtonCount uint
 var rightMouseButtonReleased bool
 
 func updateMouse() {
+	// fmt.Println("left button count", leftMouseButtonCount)
 	leftMouseButtonReleased = false
 	rightMouseButtonReleased = false
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -99,10 +100,14 @@ func mbtnp(btn ebiten.MouseButton) bool {
 
 func eatMbtnp(btn ebiten.MouseButton) {
 	if btn == ebiten.MouseButtonLeft {
-		leftMouseButtonCount++
+		if leftMouseButtonCount > 0 {
+			leftMouseButtonCount++
+		}
 	}
 	if btn == ebiten.MouseButtonRight {
-		rightMouseButtonCount++
+		if rightMouseButtonCount > 0 {
+			rightMouseButtonCount++
+		}
 	}
 }
 
@@ -119,10 +124,12 @@ func mbtnr(btn ebiten.MouseButton) bool {
 
 func eatMbtnr(btn ebiten.MouseButton) {
 	if btn == ebiten.MouseButtonLeft {
+		leftMouseButtonCount = 0
 		leftMouseButtonReleased = false
 	}
 	if btn == ebiten.MouseButtonRight {
-		leftMouseButtonReleased = false
+		rightMouseButtonCount = 0
+		rightMouseButtonReleased = false
 	}
 }
 

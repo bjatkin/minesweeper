@@ -33,6 +33,9 @@
   - [x] mock a power up unlock screen
 
 ## bugs
+  - [ ] when clicking the pause button in the upper right corner you end up clicking through it to flip tiles
+  - [ ] the dog board layout is broken
+  - [x] fix the weird double click bug
   - [x] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
   - [x] add a way to eat inputs to prevent clicking through the UI or clicking on menues right when they pop up
   - [x] show cooldown on unlock screen for new powerups

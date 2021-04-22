@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Println("Usage converter convert.bmp layout_name")
+		fmt.Println("Usage converter convert.png layout_name")
 		return
 	}
 	layoutName := os.Args[2]

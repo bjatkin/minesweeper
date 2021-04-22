@@ -42,19 +42,31 @@ func (lvl *n_levelData) loadLvl(data []byte) {
 var sec = int64(1000000000)
 var min = 60 * sec
 
+// FUN LEVEL LIST
+/*
+	8x8, 10 very easy
+	16x16, 40 easy but long
+	heart, 40 med easy
+	ditherBoardLayout, 25 Hard
+	croseeBoardLayout, 25 Hard
+	mineBoardLayout, 50 Med
+*/
+
 // al the levels
 var allLevels = [14]*n_levelData{
+	// TEST LEVELS
+	{layout: mineBoardLayout, mineCount: 40},
 	// level 1
-	{
-		layout:      newSquareLayout(8, 8),
-		mineCount:   10,
-		starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
-		bestTime:    65 * sec,
-		unlocked:    true,
-		unlockedPow: minusMinePow,
-		unlockSlot:  1,
-		nextLevel:   1,
-	},
+	// {
+	// 	layout:      newSquareLayout(8, 8),
+	// 	mineCount:   10,
+	// 	starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
+	// 	bestTime:    65 * sec,
+	// 	unlocked:    true,
+	// 	unlockedPow: minusMinePow,
+	// 	unlockSlot:  1,
+	// 	nextLevel:   1,
+	// },
 	// level 2
 	{
 		layout:      newSquareLayout(16, 16),
