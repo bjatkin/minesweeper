@@ -50,12 +50,16 @@ var min = 60 * sec
 	ditherBoardLayout, 25 Hard
 	croseeBoardLayout, 25 Hard
 	mineBoardLayout, 50 Med
+	dogBoardLayout, 50 Med
+	squaresBoardLayout, 70 Med + Long
+	squaresBoardLayout, 99 Hard + Long
+	squares2BoardLayout, 70 Easy + Long
 */
 
-// al the levels
+// all the levels
 var allLevels = [14]*n_levelData{
 	// TEST LEVELS
-	{layout: mineBoardLayout, mineCount: 40},
+	{layout: squares2BoardLayout, mineCount: 60},
 	// level 1
 	// {
 	// 	layout:      newSquareLayout(8, 8),
