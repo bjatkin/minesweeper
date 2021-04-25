@@ -51,10 +51,10 @@ func newPowerUp(powType int, boundKey ebiten.Key, timer *timer) *powerUp {
 	case lockedPow:
 		pow.icons = locked
 	case addMinePow:
-		pow.coolDown = 30 * nSec
+		pow.coolDown = 60 * nSec
 		pow.icons = addMine
 	case minusMinePow:
-		pow.coolDown = 30 * nSec
+		pow.coolDown = 60 * nSec
 		pow.icons = minusMine
 	case tidalWavePow:
 		pow.coolDown = 180 * nSec
