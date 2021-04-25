@@ -319,8 +319,7 @@ func (t *titleScreanScean) update() error {
 
 			currentScean = newLevelScean(
 				allLevels[0],
-				// [3]int{lockedPow, lockedPow, lockedPow},
-				[3]int{addMinePow, minusMinePow, dogABonePow},
+				[3]int{lockedPow, lockedPow, lockedPow},
 				0,
 				1,
 			)

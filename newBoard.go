@@ -1203,7 +1203,7 @@ func (l *levelScean) fillBoard(safe *n_tile) {
 }
 
 func doTidalWave(board *[]n_tile) {
-	soak := 4
+	soak := 10
 	var saftey int
 	for soak > 0 {
 		saftey++
