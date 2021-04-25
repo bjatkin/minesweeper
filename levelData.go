@@ -47,30 +47,32 @@ var min = 60 * sec
 	8x8, 10 very easy
 	16x16, 40 easy but long
 	heart, 40 med easy
+	heartBoardLayout, 40, frozenTileCount: 60 Med
 	ditherBoardLayout, 25 Hard
+	ditherBoardLayout, 25 Hard, lockedTileCount: 25 Hard
 	croseeBoardLayout, 25 Hard
 	mineBoardLayout, 50 Med
 	dogBoardLayout, 50 Med
 	squaresBoardLayout, 70 Med + Long
 	squaresBoardLayout, 99 Hard + Long
 	squares2BoardLayout, 70 Easy + Long
+	mineBoardLayout, 60, fadeFlags: true, Hard, final level
 */
 
 // all the levels
 var allLevels = [14]*n_levelData{
 	// TEST LEVELS
-	{layout: squares2BoardLayout, mineCount: 60},
 	// level 1
-	// {
-	// 	layout:      newSquareLayout(8, 8),
-	// 	mineCount:   10,
-	// 	starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
-	// 	bestTime:    65 * sec,
-	// 	unlocked:    true,
-	// 	unlockedPow: minusMinePow,
-	// 	unlockSlot:  1,
-	// 	nextLevel:   1,
-	// },
+	{
+		layout:      newSquareLayout(8, 8),
+		mineCount:   10,
+		starTimes:   [3]int64{60 * sec, 45 * sec, 35 * sec},
+		bestTime:    65 * sec,
+		unlocked:    true,
+		unlockedPow: minusMinePow,
+		unlockSlot:  1,
+		nextLevel:   1,
+	},
 	// level 2
 	{
 		layout:      newSquareLayout(16, 16),
@@ -110,78 +112,65 @@ var allLevels = [14]*n_levelData{
 	},
 	// level 6
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
+		layout:    dogBoardLayout,
+		mineCount: 50,
 		nextLevel: 6,
 	},
 	// level 7
 	{
-		layout:      newSquareLayout(16, 30),
-		mineCount:   99,
-		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		unlockedPow: scaredyCatPow,
-		bestTime:    5*min + 45*sec,
-		nextLevel:   7,
+		layout:          mineBoardLayout,
+		mineCount:       60,
+		unlockedPow:     scaredyCatPow,
+		lockedTileCount: 30,
+		nextLevel:       7,
 	},
 	// level 8
 	{
-		layout:     newSquareLayout(16, 30),
-		mineCount:  99,
-		starTimes:  [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:   5*min + 45*sec,
+		layout:     squares2BoardLayout,
+		mineCount:  80,
 		unlockSlot: 3,
 		nextLevel:  8,
 	},
 	// level 9
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
+		layout:    crossBoardLayout,
+		mineCount: 25,
 		nextLevel: 9,
 	},
 	// level 10
 	{
-		layout:      newSquareLayout(16, 30),
-		mineCount:   99,
-		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
+		layout:      ditherBoardLayout,
+		mineCount:   30,
 		unlockedPow: shuffelPow,
-		bestTime:    5*min + 45*sec,
 		nextLevel:   10,
 	},
 	// level 11
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 11,
+		layout:          wheelBoardLayout,
+		mineCount:       80,
+		frozenTileCount: 50,
+		nextLevel:       11,
 	},
 	// level 12
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 12,
+		layout:          ditherBoardLayout,
+		mineCount:       30,
+		lockedTileCount: 30,
+		nextLevel:       12,
 	},
 	// level 13
 	{
-		layout:    newSquareLayout(16, 30),
-		mineCount: 99,
-		starTimes: [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:  5*min + 45*sec,
-		nextLevel: 13,
+		layout:          mineBoardLayout,
+		mineCount:       70,
+		frozenTileCount: 50,
+		nextLevel:       13,
 	},
 	// level 14
 	{
 		layout:      newSquareLayout(16, 30),
 		mineCount:   99,
-		starTimes:   [3]int64{5*min + 30*sec, 4*min + 15*sec, 3*min + 25*sec},
-		bestTime:    5*min + 45*sec,
 		unlockedPow: dogABonePow,
+		fadeFlags:   false,
 		nextLevel:   14,
 	},
 }

@@ -172,7 +172,7 @@ func (t *n_tile) flip() int {
 func (t *n_tile) flag() {
 	if !t.flipped {
 		t.flagged = !t.flagged
-		t.flaggedCount = 240
+		t.flaggedCount = 600
 	}
 }
 
@@ -243,12 +243,12 @@ func (t *n_tile) draw(screen *ebiten.Image) {
 		screen.DrawImage(lock, op)
 		op.GeoM.Translate(7, 5)
 		if t.lockedCount > 9 {
-			screen.DrawImage(numberSmallWhite[t.lockedCount/10], op)
+			screen.DrawImage(numberSmall[t.lockedCount/10], op)
 			op.GeoM.Translate(4, 0)
-			screen.DrawImage(numberSmallWhite[t.lockedCount%10], op)
+			screen.DrawImage(numberSmall[t.lockedCount%10], op)
 			op.GeoM.Translate(-4, 0)
 		} else {
-			screen.DrawImage(numberSmallWhite[t.lockedCount], op)
+			screen.DrawImage(numberSmall[t.lockedCount], op)
 		}
 		op.GeoM.Translate(-7, -5)
 	}

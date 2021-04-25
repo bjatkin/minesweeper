@@ -1,9 +1,9 @@
 # TODO
 ## features
-  - [ ] design a bunch of levels to fill up the game with. Right now we really only have like 3
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level drop items down onto the scean?)
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [x] design a bunch of levels to fill up the game with. Right now we really only have like 3
   - [x] add a "are you sure you want to delete this game?"
   - [x] add a "are you sure you want to exit to the title screen?" message
   - [x] add a "are you sure you want to quit?" message
@@ -23,6 +23,8 @@
   - [x] make it so you can bring less than 3 powerups into battle
 
 ## graphics:
+  - [x] redo the water tile sprites to not be so dark when flipped
+  - [x] redo the locked tile to stand out from the background a little bit
   - [x] mock the quit game message
   - [x] mock the delete game message
   - [x] mock the exit game message
@@ -34,6 +36,7 @@
 
 ## bugs
   - [ ] when clicking the pause button in the upper right corner you end up clicking through it to flip tiles
+  - [x] numbers on locked tiles are white so you can't see them
   - [x] the dog board layout is broken
   - [x] fix the weird double click bug
   - [x] when starting map you can acidently end up freezing the 'safe' tile, preventing any files from being flipped
