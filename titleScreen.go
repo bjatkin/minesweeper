@@ -143,7 +143,7 @@ func (t *titleScreanScean) load() error {
 
 func (t *titleScreanScean) unload() error {
 	t.title = nil
-	unloadAsset("assets/title_Screen.png")
+	// unloadAsset("assets/title_Screen.png")
 	return nil
 }
 

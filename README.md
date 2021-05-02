@@ -1,8 +1,11 @@
 # TODO
 ## features
+  - [ ] add in some music?
+  - [ ] figure out how to build/ distribute this?
   - [ ] refactor/ clean up the code so it's easier to work with
   - [ ] make transitions from game to world map a little less jerky (maybe a wipe?, or level drop items down onto the scean?)
   - [ ] limit the number of a specific power up that you can bring into a map
+  - [x] use go embed for the sprites/ other assets.
   - [x] design a bunch of levels to fill up the game with. Right now we really only have like 3
   - [x] add a "are you sure you want to delete this game?"
   - [x] add a "are you sure you want to exit to the title screen?" message
@@ -35,7 +38,7 @@
   - [x] mock a power up unlock screen
 
 ## bugs
-  - [ ] when clicking the pause button in the upper right corner you end up clicking through it to flip tiles
+  - [x] when clicking the pause button in the upper right corner you end up clicking through it to flip tiles
   - [x] numbers on locked tiles are white so you can't see them
   - [x] the dog board layout is broken
   - [x] fix the weird double click bug

@@ -591,6 +591,33 @@ func (l *levelScean) update() error {
 		}
 	}
 
+	// update the level timer + some other assets
+	if !l.win {
+		l.levelTimer.update()
+		if l.levelTimer.playBtn.wasClicked() {
+			l.doUnPause = true
+		}
+		if l.levelTimer.pauseBtn.clicked {
+			l.paused = true
+			l.levelTimer.timer.stop()
+		}
+		if btnp(ebiten.KeyEscape) && l.filled && !l.loose {
+			if l.usingPowerUp {
+				l.usingPowerUp = false
+				for i := 0; i < len(*l.board); i++ {
+					(*l.board)[i].bounce = false
+				}
+			} else {
+				if !l.paused {
+					l.paused = true
+					l.levelTimer.timer.stop()
+				} else {
+					l.doUnPause = true
+				}
+			}
+		}
+	}
+
 	// check if were flipping a tile
 	var flipCount int
 	if !l.win && !l.loose &&
@@ -823,33 +850,6 @@ func (l *levelScean) update() error {
 	}
 
 	l.pauseCoolDown--
-	// update the level timer + some other assets
-	if !l.win {
-		l.levelTimer.update()
-		if l.levelTimer.playBtn.wasClicked() {
-			l.doUnPause = true
-		}
-		if l.levelTimer.pauseBtn.clicked {
-			l.paused = true
-			l.levelTimer.timer.stop()
-		}
-		if btnp(ebiten.KeyEscape) && l.filled && !l.loose {
-			if l.usingPowerUp {
-				l.usingPowerUp = false
-				for i := 0; i < len(*l.board); i++ {
-					(*l.board)[i].bounce = false
-				}
-			} else {
-				if !l.paused {
-					l.paused = true
-					l.levelTimer.timer.stop()
-				} else {
-					l.doUnPause = true
-				}
-			}
-		}
-
-	}
 
 	l.miniMap.update()
 	l.duckCharacterUI.update()

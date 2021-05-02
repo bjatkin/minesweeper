@@ -73,21 +73,21 @@ func main() {
 	mainFont = load6x8Font()
 
 	var err error
-	ss, err := getAsset("assets/sprites_test_2.png")
+	ss, err := getAsset("assets/sprite_sheet.png")
 	if err != nil {
 		log.Fatal(err)
 	}
 	gameCursor = newAniSprite(
 		[]*ebiten.Image{
-			subImage(ss, 64, 112, 16, 16),
-			subImage(ss, 80, 112, 16, 16),
+			subImage(ss, 120, 32, 16, 16),
+			subImage(ss, 136, 32, 16, 16),
 		},
 		[]uint16{28, 28},
 		true,
 	)
 	gameCursor.play()
 
-	gameCursorHold = newSprite(subImage(ss, 96, 112, 16, 16))
+	gameCursorHold = newSprite(subImage(ss, 120, 48, 16, 16))
 
 	ebiten.SetCursorMode(ebiten.CursorModeHidden)
 
