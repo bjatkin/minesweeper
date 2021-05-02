@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo building for mac...
+GOOS=darwin GOARCH=amd64 go build -o dist/mac/ready\ set\ duck 
+echo building for windows...
+GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o dist/windows/ready\ set\ duck

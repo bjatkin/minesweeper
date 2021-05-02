@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"fmt"
 	"image"
 	_ "image/png"
 
@@ -16,6 +15,9 @@ var (
 
 	//go:embed assets/sprite_sheet.png
 	spriteSheet []byte
+
+	//go:embed assets/pixel_font.png
+	pixelFont []byte
 )
 
 var loadedAssets = make(map[string]*ebiten.Image, 100)
@@ -27,12 +29,11 @@ func getAsset(fileName string) (*ebiten.Image, error) {
 	}
 
 	reader := bytes.NewReader(titleScreen)
-	fmt.Println("FILE NAME: ", fileName)
 	if fileName == "assets/sprite_sheet.png" {
-		fmt.Println("Loading Sprite Sheet", len(spriteSheet))
 		reader = bytes.NewReader(spriteSheet)
-	} else {
-		fmt.Println("Loading Title Screen", len(titleScreen))
+	}
+	if fileName == "assets/pixel_font.png" {
+		reader = bytes.NewReader(pixelFont)
 	}
 
 	img, _, err := image.Decode(reader)
@@ -42,8 +43,6 @@ func getAsset(fileName string) (*ebiten.Image, error) {
 
 	ebtImg := ebiten.NewImageFromImage(img)
 	loadedAssets[fileName] = ebtImg
-	fmt.Println("size", ebtImg.Bounds().Max)
-	fmt.Println("-----------------")
 
 	return ebtImg, nil
 }

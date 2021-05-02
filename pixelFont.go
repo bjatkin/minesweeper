@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type pxlFont struct {
@@ -21,7 +20,8 @@ type pxlFont struct {
 }
 
 func load6x8Font() *pxlFont {
-	img, _, err := ebitenutil.NewImageFromFile("assets/pixel_font.png")
+	img, err := getAsset("assets/pixel_font.png")
+	// img, _, err := ebitenutil.NewImageFromFile("assets/pixel_font.png")
 	if err != nil {
 		log.Fatal(err)
 	}

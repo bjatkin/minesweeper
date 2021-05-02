@@ -1,0 +1,5 @@
+# ignore built files
+dist
+
+# ignore mac files
+.DS_Store
