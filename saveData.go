@@ -3,13 +3,18 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"os/user"
+	"path"
+	"runtime"
 )
 
 var CurrentSaveGame = &n_SaveGame{}
 
 const SaveGameByteLen = 256
-const SaveGameFile = "test3.save"
+
+var SaveGameFile string
 
 type n_SaveGame struct {
 	used           bool
@@ -20,6 +25,33 @@ type n_SaveGame struct {
 	currentPows    [3]int
 	unlockedPowers [7]*uiIcon
 	loaded         bool
+}
+
+func init() {
+	u, err := user.Current()
+	if err != nil {
+		log.Fatalf("current user could not be found: %s", err)
+	}
+
+	var p []string
+	switch runtime.GOOS {
+	case "windows":
+		p = []string{u.HomeDir, "AppData", "Roaming", "ready_set_duck"}
+	case "darwin":
+		p = []string{u.HomeDir, "Library", "Application Support", "ready_set_duck", "save.dat"}
+	case "linux":
+		p = []string{"~", ".ready_set_duck", "save.dat"}
+	default:
+		log.Fatalf("unknown/ unsuported OS: %s", runtime.GOOS)
+	}
+
+	err = os.MkdirAll(path.Join(p...), os.ModePerm)
+	if err != nil {
+		log.Fatalf("could not create save folder: %s", err)
+	}
+
+	p = append(p, "save.dat")
+	SaveGameFile = path.Join(p...)
 }
 
 func (s *n_SaveGame) saveGame(jeepIndex int, levelNumber int, pows [3]int) error {
