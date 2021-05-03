@@ -38,9 +38,7 @@ func init() {
 	case "windows":
 		p = []string{u.HomeDir, "AppData", "Roaming", "ready_set_duck"}
 	case "darwin":
-		p = []string{u.HomeDir, "Library", "Application Support", "ready_set_duck", "save.dat"}
-	case "linux":
-		p = []string{"~", ".ready_set_duck", "save.dat"}
+		p = []string{u.HomeDir, "Library", "Application Support", "ready_set_duck"}
 	default:
 		log.Fatalf("unknown/ unsuported OS: %s", runtime.GOOS)
 	}
