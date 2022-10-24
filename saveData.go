@@ -1,20 +1,20 @@
+//go:build !js
+// +build !js
+
 package main
 
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
-	"os/user"
-	"path"
-	"runtime"
+	"path/filepath"
 )
 
 var CurrentSaveGame = &n_SaveGame{}
 
 const SaveGameByteLen = 256
 
-var SaveGameFile string
+var SaveGameFile = filepath.Join("save_data", "save.dat")
 
 type n_SaveGame struct {
 	used           bool
@@ -25,32 +25,6 @@ type n_SaveGame struct {
 	currentPows    [3]int
 	unlockedPowers [7]*uiIcon
 	loaded         bool
-}
-
-func init() {
-	u, err := user.Current()
-	if err != nil {
-		log.Fatalf("current user could not be found: %s", err)
-	}
-
-	var p []string
-	switch runtime.GOOS {
-	case "windows":
-		p = []string{u.HomeDir, "AppData", "Roaming", "ready_set_duck"}
-	case "darwin":
-		p = []string{"..", "Resources"}
-		// p = []string{u.HomeDir, "Library", "Application Support", "ready_set_duck"}
-	default:
-		log.Fatalf("unknown/ unsuported OS: %s", runtime.GOOS)
-	}
-
-	err = os.MkdirAll(path.Join(p...), os.ModePerm)
-	if err != nil {
-		log.Fatalf("could not create save folder: %s", err)
-	}
-
-	p = append(p, "save.dat")
-	SaveGameFile = path.Join(p...)
 }
 
 func (s *n_SaveGame) saveGame(jeepIndex int, levelNumber int, pows [3]int) error {

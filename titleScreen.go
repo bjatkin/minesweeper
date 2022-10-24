@@ -17,7 +17,6 @@ type titleScreanScean struct {
 	shakeCount         int
 	cursorIndex        int
 	quitGameDialogue   *alertDialogue
-	quittingGame       bool
 	deleteGameDialogue *alertDialogue
 	deletingGame       bool
 	deletingGameSlot   int
@@ -157,21 +156,7 @@ func (t *titleScreanScean) update() error {
 		if t.newGame || t.loadGame {
 			t.newGame = false
 			t.loadGame = false
-		} else {
-			t.quittingGame = true
 		}
-	}
-
-	if t.quittingGame {
-		t.quitGameDialogue.update()
-		if t.quitGameDialogue.yes {
-			return quitGame
-		}
-		if t.quitGameDialogue.no {
-			t.quittingGame = false
-			t.quitGameDialogue.reset()
-		}
-		return nil
 	}
 
 	if t.deletingGame {
@@ -501,10 +486,6 @@ func (t *titleScreanScean) draw(screen *ebiten.Image) {
 				}
 			}
 		}
-	}
-
-	if t.quittingGame {
-		t.quitGameDialogue.draw(screen)
 	}
 
 	if t.deletingGame {

@@ -1,9 +1,24 @@
 #!/bin/bash
 
 echo building for mac...
-GOOS=darwin GOARCH=amd64 go build -o dist/mac/ready\ set\ duck.app/Contents/MacOS/ready\ set\ duck
+echo
+GOOS=darwin GOARCH=amd64 go build -o dist/mac/ready_set_duck/ready_set_duck .
+mkdir dist/mac/ready_set_duck/ready_set_duck/save_data
+zip -r dist/mac/ready_set_duck_mac.zip dist/mac/ready_set_duck
+
 echo building for windows...
-GOOS=windows GOARCH=amd64 go generate
-GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o dist/windows/ready\ set\ duck.exe
-echo cleanup...
-rm resource.syso
+echo
+GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o dist/windows/ready_set_duck/ready_set_duck.exe .
+mkdir dist/windows/ready_set_duck/ready_set_duck/save_data
+zip -r dist/windows/ready_set_duck_windows.zip dist/windows/ready_set_duck
+
+echo building for linux...
+echo
+GOOS=linux GOARCH=amd64 go build -o dist/linux/ready_set_duck/ready_set_duck.elf .
+mkdir dist/linux/ready_set_duck/ready_set_duck/save_data
+zip -r dist/linux/ready_set_duck_linux.zip dist/linux/ready_set_duck
+
+echo building for web...
+echo
+GOOS=js GOARCH=wasm go build -o dist/html5/ready_set_duck/ready_set_duck.wasm .
+zip -r dist/html5/ready_set_duck_web.zip dist/html5/ready_set_duck
