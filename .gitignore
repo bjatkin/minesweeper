@@ -1,2 +1,12 @@
 # ignore mac files
 .DS_Store
+
+# built files
+ready_set_duck.wasm
+ready_set_duck_web.zip
+
+ready_set_duck.exe
+ready_set_duck_windows.zip
+
+ready_set_duck
+ready_set_duck_mac.zip

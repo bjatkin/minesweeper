@@ -12,12 +12,6 @@ GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o dist/windows/read
 mkdir dist/windows/ready_set_duck/ready_set_duck/save_data
 zip -r dist/windows/ready_set_duck_windows.zip dist/windows/ready_set_duck
 
-echo building for linux...
-echo
-GOOS=linux GOARCH=amd64 go build -o dist/linux/ready_set_duck/ready_set_duck.elf .
-mkdir dist/linux/ready_set_duck/ready_set_duck/save_data
-zip -r dist/linux/ready_set_duck_linux.zip dist/linux/ready_set_duck
-
 echo building for web...
 echo
 GOOS=js GOARCH=wasm go build -o dist/html5/ready_set_duck/ready_set_duck.wasm .
