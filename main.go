@@ -91,8 +91,8 @@ func main() {
 
 	ebiten.SetCursorMode(ebiten.CursorModeHidden)
 
-	// currentScean = &titleScreanScean{}
-	currentScean = &testScean{}
+	currentScean = &titleScreanScean{}
+	// currentScean = &testScean{}
 	err = currentScean.load()
 	if err != nil {
 		log.Fatal(err)
